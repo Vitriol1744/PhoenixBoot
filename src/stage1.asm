@@ -165,8 +165,6 @@ print_string:
 
 %include 'gdt.inc'
 
-string: db "Hello, World!", 0xd, 0xa, 0x0
-
 ; partition table begins here
 %if ($ - $$) >= 446
     %fatal 'Bootloader code exceeds 446 bytes'
@@ -179,4 +177,3 @@ stage2_bin_start:
 incbin 'stage2.bin'
 stage2_bin_end:
 stage2_size equ (stage2_bin_end - stage2_bin_start)
-times 2048 - ($ - $$) db 0
