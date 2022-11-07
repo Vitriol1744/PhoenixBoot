@@ -4,6 +4,53 @@
 
 #include <cstdarg>
 
+long pow(long num, long power)
+{
+	int invert = 0;
+
+	long powMult = 1;
+
+	if ((invert = (power < 0)))
+		power = -power;
+
+	for (long x = 0; x < power; x++)
+		powMult *= num;
+
+	return (invert) ? 1 / powMult : powMult;
+}
+
+size_t strlen(const char* str)
+{
+    size_t bytes = 0;
+    while (*str != '\0')
+    {
+        bytes++;
+        ++str;
+    }
+
+    return bytes;
+}
+int strcmp(const char* lhs, const char* rhs)
+{
+    while (*lhs != '\0' && *lhs == *rhs)
+    {
+        ++lhs;
+        ++rhs;
+    }
+    if (*lhs == *rhs) return 0;
+    return (*lhs - *rhs);
+}
+int strncmp(const char* lhs, const char* rhs, size_t n)
+{
+    while (*lhs != '\0' && *lhs == *rhs && n > 0)
+    {
+        ++lhs;
+        ++rhs;
+        --n;
+    }
+    if (*lhs == *rhs) return 0;
+    return (*lhs - *rhs);
+}
 void* memset(void* src, int c, size_t bytes)
 {
     char* s = (char*)src;
@@ -16,8 +63,34 @@ void* memset(void* src, int c, size_t bytes)
 
     return src;
 }
+void* memcpy(void* dest, const void* src, size_t bytes)
+{
+    char* d = static_cast<char*>(dest);
+    char* s = static_cast<char*>(const_cast<void*>(src));
+    while (bytes > 0)
+    {
+        *d++ = *s++;
+        bytes--;
+    }
 
-char* itoa(int32_t value, char* str, int base)
+    return dest;
+}
+
+int atoi(const char* str)
+{
+    int integer = 0;
+    bool isNegative = str[0] == '-';
+
+    int index = isNegative;
+    size_t stringLength = strlen(str), power = stringLength - isNegative;
+
+    for (; index < stringLength; index++)
+        integer += (str[index] - 48) * pow(10, --power);
+
+
+    return (isNegative) ? -integer : integer;
+}
+char* itoa(int value, char* str, int base)
 {
     int i = 0;
     bool isNegative = false;
@@ -80,7 +153,7 @@ void printf(const char* fmt, ...)
         {
             case 'b':
             {
-                int32_t value = va_arg(args, int32_t);
+                int value = va_arg(args, int);
                 char string[20];
                 char* str = string;
                 itoa(value, str, 2);
@@ -93,14 +166,14 @@ void printf(const char* fmt, ...)
             break;
             case 'c':
             {
-                char c = va_arg(args, char);
+                char c = va_arg(args, int);
                 Terminal::Get()->PutChar(c);
             }
             break;
             case 'd':
             case 'i':
             {
-                int32_t value = va_arg(args, int32_t);
+                int value = va_arg(args, int);
                 char string[20];
                 char* str = string;
                 itoa(value, str, 10);
@@ -113,7 +186,7 @@ void printf(const char* fmt, ...)
             break;
             case 'o':
             {
-                int32_t value = va_arg(args, int32_t);
+                int value = va_arg(args, int);
                 char string[20];
                 char* str = string;
                 itoa(value, str, 8);
@@ -145,10 +218,10 @@ void printf(const char* fmt, ...)
             break;
             case 'u':
             {
-                uint32_t value = va_arg(args, uint32_t);
+                uint value = va_arg(args, unsigned int);
                 char string[20];
                 char* str = string;
-                itoa(static_cast<int32_t>(value), str, 10);
+                itoa(static_cast<int>(value), str, 10);
                 while (*str != '\0')
                 {
                     Terminal::Get()->PutChar(*str);
@@ -158,7 +231,7 @@ void printf(const char* fmt, ...)
             break;
             case 'x':
             {
-                int32_t value = va_arg(args, int32_t);
+                int value = va_arg(args, int);
                 char string[20];
                 char* str = string;
                 itoa(value, str, 16);
