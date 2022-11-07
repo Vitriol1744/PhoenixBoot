@@ -1,2 +1,7 @@
 ./build/
 ./PhoenixBoot.code-workspace
+build/
+
+.vscode/
+
+*.code-workspace
