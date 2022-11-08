@@ -3,73 +3,40 @@ gdtr:
     dd .start
 
 .start:
+    ; null segment
     dq 0
 
     ; 32-bit code segment
-    dw 0FFFFh                   ; limit (bits 0-15) = 0xFFFFF for full 32-bit range
-    dw 0                        ; base (bits 0-15) = 0x0
+    dw 0xffff                   ; limit (bits 0-15)
+    dw 0                        ; base (bits 0-15)
     db 0                        ; base (bits 16-23)
-    db 10011010b                ; access (present, ring 0, code segment, executable, direction 0, readable)
-    db 11001111b                ; granularity (4k pages, 32-bit pmode) + limit (bits 16-19)
-    db 0                        ; base high
+    db 0b10011010               ; access (present(bit 7) | code_or_data_segment(bit 4) | executable(bit 3) | readable(bit 0))
+    ; flags: 4k pages | 32bit segment
+    db (0b1100 << 4) | 0b1111   ; flags | limit (bits 16-19)
+    db 0                        ; base (bits 24-31)
 
     ; 32-bit data segment
-    dw 0FFFFh                   ; limit (bits 0-15) = 0xFFFFF for full 32-bit range
-    dw 0                        ; base (bits 0-15) = 0x0
+    dw 0xffff                   ; limit (bits 0-15)
+    dw 0                        ; base (bits 0-15) 
     db 0                        ; base (bits 16-23)
-    db 10010010b                ; access (present, ring 0, data segment, executable, direction 0, writable)
-    db 11001111b                ; granularity (4k pages, 32-bit pmode) + limit (bits 16-19)
-    db 0                        ; base high
+    db 0b10010010               ; access (present(bit 7) | code_or_data_segment(bit 4) | writeable(bit 1))
+    ; 4k pages | 32bit segment
+    db (0b1100 << 4) | 0b1111   ; flags | limit (bits 16-19)
+    db 0                        ; base (bits 24-31)
 
     ; 16-bit code segment
-    dw 0FFFFh                   ; limit (bits 0-15) = 0xFFFFF
-    dw 0                        ; base (bits 0-15) = 0x0
+    dw 0xffff                   ; limit (bits 0-15)
+    dw 0                        ; base (bits 0-15)
     db 0                        ; base (bits 16-23)
-    db 10011010b                ; access (present, ring 0, code segment, executable, direction 0, readable)
-    db 00001111b                ; granularity (1b pages, 16-bit pmode) + limit (bits 16-19)
-    db 0                        ; base high
+    db 0b10011010               ; access (present(bit 7) | code_or_data_segment(bit 4) | executable(bit 3) | readable(bit 0))
+    db (0b0000 << 4) | 0b1111   ; flags | limit
+    db 0                        ; base (bits 24-31)
 
     ; 16-bit data segment
-    dw 0FFFFh                   ; limit (bits 0-15) = 0xFFFFF
-    dw 0                        ; base (bits 0-15) = 0x0
+    dw 0xffff                   ; limit (bits 0-15)
+    dw 0                        ; base (bits 0-15)
     db 0                        ; base (bits 16-23)
-    db 10010010b                ; access (present, ring 0, data segment, executable, direction 0, writable)
-    db 00001111b                ; granularity (1b pages, 16-bit pmode) + limit (bits 16-19)
-    db 0                        ; base high
-    ; ; null segment
-    ; dq 0
-
-    ; ; Code segment
-    ; ; dd 0xffff  ; segment limit
-    ; ; dd (10 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 22) | (1 << 23)
-
-    ; ; Data segment
-    ; ; dd 0xffff  ; segment limit
-    ; ; dd (2 << 8) | (1 << 12) | (1 << 15) | (0xf << 16) | (1 << 22) | (1 << 23)
-
-    ; ; limit
-    ; dw 0xffff
-    ; ; base low - 16 bits
-    ; dw 0x0000
-    ; ; base middle - 8 bits
-    ; db 0x00
-    ; ; access
-    ; db 10011010b
-    ; ; granularity
-    ; db 11001111b
-    ; ; base high - 8 bits
-    ; db 0x00
-
-    ; ; limit
-    ; dw 0xffff
-    ; ; base low - 16 bits
-    ; dw 0x0000
-    ; ; base middle - 8 bits
-    ; db 0x00
-    ; ; access
-    ; db 10010010b
-    ; ; granularity
-    ; db 11001111b
-    ; ; base high - 8 bits
-    ; db 0x00
+    db 0b10010010               ; access (present(bit 7) | code_or_data_segment(bit 4) | writeable(bit 1))
+    db (0b0000 << 4) | 0b1111   ; flags | limit
+    db 0                        ; base (bits 24-31)
 .end:
