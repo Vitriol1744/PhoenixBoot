@@ -6,6 +6,7 @@
 #include "drivers/TextModeTerminal.hpp"
 
 #include "lib/libc.hpp"
+#include "lib/PhysicalMemoryManager.hpp"
 
 extern uint8_t* __bss_start[];
 extern uint8_t* __bss_end[];
@@ -64,28 +65,43 @@ extern "C"
     }
 }
 
-extern "C" __attribute__((section(".entry"))) void Stage2Main(uint8_t bootDrive, size_t stage2Size)
+extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2Main(uint8_t bootDrive, uint16_t stage2Size)
 {
     // Zero-out .bss section
     uint8_t* bss_start  = reinterpret_cast<uint8_t*>(__bss_start);
     uint8_t* bss_end    = reinterpret_cast<uint8_t*>(__bss_end);
     for (uint8_t* p = bss_start; p < bss_end; p++) *p = 0;
+
+    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x7e00 + stage2Size + 0x100);
+    TextModeTerminal::Initialize();
+    Terminal::Get()->SetY(15);
+    printf("BootDrive: %x", bootDrive);
     
     // Call global constructors
     for (ConstructorFunction* f = __init_array_start; f < __init_array_end; f++) (*f)();
 
-    TextModeTerminal::Initialize();
     //TODO: Render some cool ASCII art
-                           
-    *(long long*)0xb8000 = 0x12591241124b124f;
-    Terminal::Get()->SetY(1);
-    Terminal::Get()->SetColor(TerminalColor::Cyan, TerminalColor::Black);
+
+    *(long long*)0xb80f0 = 0x12591241124b124f;
+    Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
     char buffer[20];
     itoa(146, buffer, 16);
     Terminal::Get()->PrintString(buffer);
     printf("some_value: %c%c%x%x%r%d", 'a', 'b', 0xf, 0xf, "123", 3);
+    printf("\nBootDrive: 0x%x, Stage2Size: %x", bootDrive, stage2Size);
+
+    uint8_t drive_type;
+    uint16_t cylinders = 0, sectors = 0, heads = 0;
+    get_drive_parameters(0x80, &drive_type, &cylinders, &sectors, &heads);
+
+    printf("Cylinders: %d, Sectors: %d, Heads: %d", cylinders, sectors, heads);
 
     __cxa_finalize();
     __asm__("hlt");
 }
+
+
+
+
+// Jebać C :)
