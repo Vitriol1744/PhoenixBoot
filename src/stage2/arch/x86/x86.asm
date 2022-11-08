@@ -11,6 +11,32 @@ use32
     and %3, 0x0f
 %endmacro
 
+global reset_disk
+reset_disk:
+    enter 0, 0
+    GoRealMode
+
+    ; disk reset routine
+    mov ah, 0x00
+    ; drive number
+    mov dl, [bp + 8]
+    stc
+    int 0x13
+
+    ; return 0 on failure
+    mov eax, 0
+    jc .done
+    or eax, 1
+.done:
+    ; save return value
+    push eax
+    GoProtectedMode
+    ; load return value
+    pop eax
+
+    leave
+    ret
+
 global get_drive_parameters
 get_drive_parameters:
     enter 0, 0
@@ -61,6 +87,56 @@ get_drive_parameters:
     pop es
     pop bx
     pop esi
+
+    ; save return value
+    push eax
+    GoProtectedMode
+    ; load return value
+    pop eax
+
+    leave
+    ret
+
+global read_sectors
+read_sectors:
+    enter 0, 0
+    GoRealMode
+
+    ; save non-scratch registers
+    push ebx
+    push es
+
+    ; read sectors routine
+    mov ah, 0x02
+    ; drive number
+    mov dl, [bp + 8]
+    ; low 8 bits of cylinder number
+    mov ch, [bp + 12]
+    ; high 2 bits of cylinder number (bits 6-7)
+    mov cl, [bp + 13]
+    shl cl, 6
+    ; sector number (bits 0-5)
+    mov al, [bp + 16]
+    and al, 0x3f
+    or cl, al
+    ; head number
+    mov dh, [bp + 20]
+    ; sectors to read count
+    mov al, [bp + 28]
+    ; buffer
+    LinearToSegOffset [bp + 24], es, ebx, bx
+    stc
+    int 0x13
+
+    push eax
+    mov eax, 0
+    jc .done
+    ; if successful, set return value to the number of sectors transferred
+    pop eax
+.done:
+    ; load non-scratch registers
+    pop es
+    pop ebx
 
     ; save return value
     push eax
