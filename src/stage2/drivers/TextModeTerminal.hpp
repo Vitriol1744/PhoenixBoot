@@ -2,6 +2,8 @@
 
 #include "Terminal.hpp"
 
+#include "lib/PhysicalMemoryManager.hpp"
+
 #include <cstdint>
 #include <new>
 
@@ -10,8 +12,7 @@ class TextModeTerminal : public Terminal
     public:
         inline static void Initialize()
         {
-            //TODO: Allocate memory instead of hardcoding the address
-            terminal = reinterpret_cast<Terminal*>(0x20000);
+            terminal = reinterpret_cast<Terminal*>(PhysicalMemoryManager::Allocate(sizeof(TextModeTerminal)));
             new(terminal)TextModeTerminal;
         }
 
