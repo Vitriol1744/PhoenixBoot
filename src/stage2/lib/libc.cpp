@@ -218,7 +218,7 @@ void printf(const char* fmt, ...)
             break;
             case 'u':
             {
-                uint value = va_arg(args, unsigned int);
+                unsigned int value = va_arg(args, unsigned int);
                 char string[20];
                 char* str = string;
                 itoa(static_cast<int>(value), str, 10);
