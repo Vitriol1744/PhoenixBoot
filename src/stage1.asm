@@ -6,6 +6,7 @@ org 0x7c00
 
 ; skip bios parameter block
 jmp short start
+nop
 bpb_oem_identifier: times 8 db 0
 bpb_bytes_per_sector: dw 512
 bpb_sectors_per_cluster: db 0
@@ -35,6 +36,7 @@ start:
     xor ax, ax
     mov ds, ax
     mov es, ax
+    mov ss, ax
     ; set up stack
     mov sp, 0x7c00
     mov bp, sp
@@ -120,12 +122,12 @@ read_stage2:
     int 0x15
 
 switch_to_protected_mode:
-    cli
     lgdt [gdtr]
+
     mov eax, cr0
     or al, 1
     mov cr0, eax
-    jmp 0x08:protected_mode_main
+    jmp dword 0x08:protected_mode_main
 
 protected_mode_main:
 use32
@@ -133,16 +135,20 @@ use32
     mov ax, 0x10
     mov ds, ax
     mov es, ax
+    mov fs, ax
+    mov gs, ax
     mov ss, ax
 
-    push stage2_size
+    ; set up 32 bit stack
+    mov esp, 0x7c00
+    push dword stage2_size
     ; disk number(low 8 bits)
     and dx, 0xff
-    push dx
+    push dword edx
     ; push invalid return address
-    push 0x00
+    push dword 0x0000
     ; jump to stage2
-    jmp word 0x7e00
+    jmp STAGE2_OFFSET
 
 use16
 print_string:
