@@ -9,7 +9,8 @@ SECTIONS
     .text   : { __text_start = .;       *(.text)    }
     .data   : { __data_start = .;       *(.data)    }
     .rodata : { __rodata_start = .;     *(.rodata)  }
-    .bss    : { __bss_start = .;        *(.bss);    }    __bss_end = .;
+    .bss    : { __bss_start = .;        *(.bss)     }
+    __bss_end = .;    
 
     .init_array : 
     {
