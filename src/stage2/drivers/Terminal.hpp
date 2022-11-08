@@ -5,22 +5,22 @@
 
 enum class TerminalColor
 {
-    Black           = 0,
-    Blue            = 1,
-    Green           = 2,
-    Cyan            = 3,
-    Red             = 4,
-    Magenta         = 5,
-    Brown           = 6,
-    LightGrey       = 7,
-    DarkGrey        = 8,
-    LightBlue       = 9,
-    LightGreen      = 10,
-    LightCyan       = 11,
-    LightRed        = 12,
-    LightMagenta    = 13,
-    LightBrown      = 14,
-    White           = 15,
+    eBlack           = 0,
+    eBlue            = 1,
+    eGreen           = 2,
+    eCyan            = 3,
+    eRed             = 4,
+    eMagenta         = 5,
+    eBrown           = 6,
+    eLightGrey       = 7,
+    eDarkGrey        = 8,
+    eLightBlue       = 9,
+    eLightGreen      = 10,
+    eLightCyan       = 11,
+    eLightRed        = 12,
+    eLightMagenta    = 13,
+    eLightBrown      = 14,
+    eWhite           = 15,
 };
 
 class Terminal
