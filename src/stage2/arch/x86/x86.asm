@@ -50,15 +50,22 @@ get_drive_parameters:
     LinearToSegOffset [bp + 20], es, esi, si
     mov [es:si], cx
 
+    mov cl, dh
+    inc cx
+
+    LinearToSegOffset [bp + 24], es, esi, si
+    mov [es:si], cx
+
     ; load non-scratch registers
     pop di
     pop es
     pop bx
     pop esi
 
-    ; return value
+    ; save return value
     push eax
     GoProtectedMode
+    ; load return value
     pop eax
 
     leave
