@@ -26,17 +26,23 @@ enum class TerminalColor
 class Terminal
 {
     public:
+        virtual void ClearScreen(TerminalColor color) = 0;
         virtual void PutChar(char c) = 0;
+
+        virtual TerminalColor GetForegroundColor() const = 0;
+        virtual TerminalColor GetBackgroundColor() const = 0;
+
         virtual void SetColor(const TerminalColor foregroundColor, const TerminalColor backgroundColor) = 0;
         virtual void SetX(const uint32_t x) = 0;
         virtual void SetY(const uint32_t y) = 0;
-        virtual void ScrollDown(const uint8_t lines) = 0;
-        
-        inline void SetPosition(const uint32_t x, const uint32_t y) { SetX(x); SetY(y); }
 
+        virtual void ScrollDown(uint8_t lines) = 0;        
+        
+        inline void ClearScreen() { ClearScreen(GetBackgroundColor()); }
         void PrintString(const char* string);
         void PrintString(const char* string, size_t count);
 
+        inline void SetPosition(const uint32_t x, const uint32_t y) { SetX(x); SetY(y); }
         inline static Terminal* Get() { return terminal; }
 
     protected:
