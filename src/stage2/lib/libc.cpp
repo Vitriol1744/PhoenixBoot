@@ -51,7 +51,7 @@ int strncmp(const char* lhs, const char* rhs, size_t n)
     if (*lhs == *rhs) return 0;
     return (*lhs - *rhs);
 }
-void* memset(void* src, int c, size_t bytes)
+void* memset(void* src, char c, size_t bytes)
 {
     char* s = (char*)src;
 
