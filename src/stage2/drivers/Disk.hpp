@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+class Partition;
+
 constexpr const uint8_t MAX_DRIVE_COUNT = 16;
 
 class Disk
@@ -22,11 +24,12 @@ class Disk
             sector = static_cast<uint16_t>((lba % sectors) + 1);
             head = static_cast<uint16_t>((lba / sectors) % heads);
         }
-        inline constexpr const uint32_t LBA(uint16_t cylinder, uint16_t sector, uint16_t head)
+        inline constexpr uint32_t LBA(uint16_t cylinder, uint16_t sector, uint16_t head)
         {
             return (cylinder * heads + head) * sectors + (sector - 1);
         }
 
+        Partition GetPartition(uint32_t partitionIndex);
         bool Read(void* buffer, uint64_t offset, uint64_t bytes);
 
     private:
