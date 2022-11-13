@@ -7,7 +7,7 @@ CXX := clang++
 AS := nasm
 LD := ld
 
-CXX_FLAGS := -Isrc/stage2 -std=c++20 -m32 -Wall -Wextra -Wpedantic -ffreestanding -nostdlib -fno-pic -fno-stack-protector -mno-red-zone -masm=intel -mno-sse -mno-sse2 -mno-mmx -mno-80387 -fno-exceptions -fno-rtti
+CXX_FLAGS := -Isrc/stage2 -std=c++20 -DPH_ARCH=PH_ARCH_X86_64 -m32 -Wall -Wextra -Wpedantic -ffreestanding -nostdlib -fno-pic -fno-stack-protector -mno-red-zone -masm=intel -mno-sse -mno-sse2 -mno-mmx -mno-80387 -fno-exceptions -fno-rtti
 AS_FLAGS := -i src/stage2/arch/x86 -felf32
 LD_FLAGS := -nostdlib -no-pie -melf_i386 -s -T linker.ld
 
