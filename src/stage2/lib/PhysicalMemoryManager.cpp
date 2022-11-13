@@ -1,10 +1,33 @@
 #include "PhysicalMemoryManager.hpp"
 
+#include <stddef.h>
+
 uint8_t* PhysicalMemoryManager::allocatorBase = reinterpret_cast<uint8_t*>(0x200000);
 uint8_t* PhysicalMemoryManager::currentPointer = reinterpret_cast<uint8_t*>(0x200000);
 uint8_t* PhysicalMemoryManager::below1M_AllocatorBase = reinterpret_cast<uint8_t*>(0x10000);
 uint8_t* PhysicalMemoryManager::below1M_AllocatorTop = reinterpret_cast<uint8_t*>(0x0007ffff);
 uint8_t* PhysicalMemoryManager::below1M_CurrentPointer = reinterpret_cast<uint8_t*>(0x10000);
+ 
+void* operator new(size_t size)
+{
+    //TODO: new
+    return nullptr; //PhysicalMemoryManager::Allocate(size);
+}
+ 
+void* operator new[](size_t size)
+{
+    return nullptr; //PhysicalMemoryManager::Allocate(size);
+}
+ 
+void operator delete(void* p)
+{
+    
+}
+ 
+void operator delete[](void* p)
+{
+    
+}
 
 void* PhysicalMemoryManager::Allocate(size_t bytes)
 {
