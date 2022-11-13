@@ -27,8 +27,6 @@ ebr_volume_id: dd 0
 ebr_volume_label: db 'PhoenixBoot'
 ebr_system_label: dq 0
 
-;TODO: A little bit more error handling
-
 start:
     cli
     cld
@@ -48,7 +46,7 @@ start:
     mov si, .stage1_msg
     call print_string
 check_int13_ext:
-    ; Query int 0x13 extensions support
+    ; query int 0x13 extensions support
     push dx
     mov ah, 0x41
     mov bx, 0x55aa
@@ -138,6 +136,7 @@ use32
     mov fs, ax
     mov gs, ax
     mov ss, ax
+    xor ebp, ebp
 
     ; set up 32 bit stack
     mov esp, 0x7c00
