@@ -1,11 +1,15 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "common.hpp"
+
 #include "arch/x86/x86.h"
 
+#include "drivers/Disk.hpp"
 #include "drivers/TextModeTerminal.hpp"
 
 #include "lib/libc.hpp"
+#include "lib/Partition.hpp"
 #include "lib/PhysicalMemoryManager.hpp"
 
 extern uint8_t* __bss_start[];
@@ -16,55 +20,24 @@ using ConstructorFunction = void(*)();
 extern ConstructorFunction __init_array_start[];
 extern ConstructorFunction __init_array_end[];
 
+// inline void* operator new(size_t, void* p)      noexcept { return p; }
+// inline void* operator new[](size_t, void* p)    noexcept { return p; }
+// inline void  operator delete  (void*, void*)    noexcept { };
+// inline void  operator delete[](void*, void*)    noexcept { };
 
 //TODO: Most of this stuff is temporary and just for tests, so don't judge this code
 class A
 {
     public:
         A() {  }
-        ~A() { *c = 'B'; }
+        ~A() { *c = 0x47; }
 
         char* c = reinterpret_cast<char*>(0xb800a);
 };
 
 A a;
 
-#define UNUSED [[maybe_unused]]
-
-extern "C"
-{
-    struct Destructor
-    {
-        void(*destructor)(void*);
-        void* objptr;
-    };
-    Destructor destructors[128];
-
-    void* __dso_handle = reinterpret_cast<void*>(0x7e00);
-    int __cxa_atexit(void(*destructor)(void* objptr), void* objptr, UNUSED void* dso)
-    {
-        static uint32_t currentIndex = 0;
-        destructors[currentIndex].destructor = destructor;
-        destructors[currentIndex].objptr = objptr;
-
-        currentIndex++;
-        return 0;
-    }
-
-    void __cxa_finalize()
-    {
-        for (int i = 0; i < 128; i++)
-        {
-            destructors[i].destructor(destructors[i].objptr);
-        }
-    }
-
-    void __cxa_pure_virtual()
-    {
-        // Do nothing or print an error message.
-    }
-}
-
+extern "C" void __cxa_finalize(void*);
 extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2Main(uint8_t bootDrive, uint16_t stage2Size)
 {
     // Zero-out .bss section
@@ -72,36 +45,30 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     uint8_t* bss_end    = reinterpret_cast<uint8_t*>(__bss_end);
     for (uint8_t* p = bss_start; p < bss_end; p++) *p = 0;
 
-    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x7e00 + stage2Size + 0x100);
+    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x7e00 + stage2Size + 0x400);
     TextModeTerminal::Initialize();
-    Terminal::Get()->SetY(15);
-    printf("BootDrive: %x", bootDrive);
+    printf("BootDrive: 0x%x\n\n", bootDrive);
     
     // Call global constructors
     for (ConstructorFunction* f = __init_array_start; f < __init_array_end; f++) (*f)();
 
     //TODO: Render some cool ASCII art
-
-    *(long long*)0xb80f0 = 0x12591241124b124f;
+    *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
-    char buffer[20];
-    itoa(146, buffer, 16);
-    Terminal::Get()->PrintString(buffer);
-    printf("some_value: %c%c%x%x%r%d", 'a', 'b', 0xf, 0xf, "123", 3);
-    printf("\nBootDrive: 0x%x, Stage2Size: %x", bootDrive, stage2Size);
+    Disk::DetectAllDrives();
 
-    uint8_t drive_type;
-    uint16_t cylinders = 0, sectors = 0, heads = 0;
-    get_drive_parameters(0x80, &drive_type, &cylinders, &sectors, &heads);
+    Disk* drives = Disk::GetDrives();
+    Partition part = drives[0].GetPartition(0);
+    
+    File* file = part.OpenFile("PhoenixOS.elf");
+    if (!file) panic("Failed to open kernel file!");
 
-    printf("Cylinders: %d, Sectors: %d, Heads: %d", cylinders, sectors, heads);
-
-    __cxa_finalize();
-    __asm__("hlt");
+    halt();
+    __cxa_finalize(nullptr);
 }
 
 
 
 
-// Jebać C :)
+// Jebać Rust'a :)
