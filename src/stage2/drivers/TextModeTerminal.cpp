@@ -47,7 +47,7 @@ void TextModeTerminal::PutChar(const char c)
         check_y:
         if (y >= TERMINAL_HEIGHT)
         {
-            uint8_t n = y - TERMINAL_HEIGHT;
+            uint8_t n = y - TERMINAL_HEIGHT + 1;
             ScrollDown(n);
         }
     }
