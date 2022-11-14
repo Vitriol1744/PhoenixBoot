@@ -46,7 +46,7 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     uint8_t* bss_end    = reinterpret_cast<uint8_t*>(__bss_end);
     for (uint8_t* p = bss_start; p < bss_end; p++) *p = 0;
 
-    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x7e00 + stage2Size + 0x400);
+    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x50000 + stage2Size);
     TextModeTerminal::Initialize();
     printf("BootDrive: 0x%x\n\n", bootDrive);
 
@@ -69,9 +69,40 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     if (!file) panic("Failed to open kernel file!");
     //panic("Testing stuff...");
 
-    #if defined __x86_64__ || defined(_M_X64)
-    printf("X86_64\n");
-    #endif
+    uint32_t continuationID = 0x00000000;
+    constexpr const uint32_t MAX_MMAP_ENTRIES = 256;
+    E820MemoryMapEntry entries[MAX_MMAP_ENTRIES];
+    uint32_t memoryMapEntriesCount = 0;
+    for (uint32_t i = 0; i < MAX_MMAP_ENTRIES; i++)
+    {
+        e820_get_next_entry(entries + i, &continuationID);
+        printf("MemoryMapEntry:\nBase: %x\nLength: %x\nType: %x\n", (uint32_t)entries[i].base, (uint32_t)entries[i].length, entries[i].type);
+    
+        ++memoryMapEntriesCount;
+        if (continuationID == 0) break;
+    }
+
+    uint32_t largestEntryBase = 0;
+    uint32_t largestEntryLength = 0;
+    for (uint32_t i = 0; i < memoryMapEntriesCount; i++)
+    {
+        if (entries[i].length > largestEntryLength && entries[i].type == 1)
+        {
+            largestEntryBase = entries[i].base;
+            largestEntryLength = entries[i].length;
+        }
+    }
+
+    Terminal::Get()->ClearScreen();
+    PhysicalMemoryManager::Initialize(largestEntryBase, largestEntryLength);
+    int* ptr = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr2 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr3 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::Free(ptr2);
+    PhysicalMemoryManager::Free(ptr);
+    PhysicalMemoryManager::Free(ptr3);
+    int* ptr5 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::Free(ptr5);
 
     halt();
     __cxa_finalize(nullptr);
