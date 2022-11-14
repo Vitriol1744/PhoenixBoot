@@ -2,8 +2,7 @@
 
 void TextModeTerminal::Initialize()
 {
-    terminal = reinterpret_cast<Terminal*>(PhysicalMemoryManager::Allocate(sizeof(TextModeTerminal)));
-    new(terminal)TextModeTerminal;
+    terminal = new TextModeTerminal;
 }
 
 void TextModeTerminal::ClearScreen(TerminalColor tcolor)
@@ -18,7 +17,7 @@ void TextModeTerminal::ClearScreen(TerminalColor tcolor)
     }
     x = y = 0;
 }
-void TextModeTerminal::PutChar(const char c) noexcept
+void TextModeTerminal::PutChar(const char c)
 {
     switch (c)
     {
@@ -54,11 +53,11 @@ void TextModeTerminal::PutChar(const char c) noexcept
     }
     UpdateCursor();
 }
-void TextModeTerminal::SetColor(const TerminalColor foregroundColor, const TerminalColor backgroundColor) noexcept
+void TextModeTerminal::SetColor(const TerminalColor foregroundColor, const TerminalColor backgroundColor)
 {
     color = (static_cast<uint8_t>(backgroundColor) << 4) | static_cast<uint8_t>(foregroundColor);
 }
-void TextModeTerminal::ScrollDown(uint8_t lines) noexcept
+void TextModeTerminal::ScrollDown(uint8_t lines)
 {
     uint8_t* src = reinterpret_cast<uint8_t*>(videoMemory + TERMINAL_WIDTH * lines);
     uint32_t toCopySize = (TERMINAL_HEIGHT - lines) * TERMINAL_WIDTH * 2;
@@ -88,7 +87,7 @@ void TextModeTerminal::UpdateCursor() const
     uint16_t pos = y * TERMINAL_WIDTH + x;
 	
     outb(0x3D4, 0x0F);
-	outb(0x3D5, (uint8_t) (pos & 0xFF));
+	outb(0x3D5, (uint8_t) (pos & 0xff));
 	outb(0x3D4, 0x0E);
-	outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+	outb(0x3D5, (uint8_t) ((pos >> 8) & 0xff));
 }
