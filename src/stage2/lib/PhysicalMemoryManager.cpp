@@ -10,23 +10,22 @@ uint8_t* PhysicalMemoryManager::below1M_CurrentPointer = reinterpret_cast<uint8_
  
 void* operator new(size_t size)
 {
-    //TODO: new
-    return nullptr; //PhysicalMemoryManager::Allocate(size);
+    return PhysicalMemoryManager::Allocate(size);
 }
  
 void* operator new[](size_t size)
 {
-    return nullptr; //PhysicalMemoryManager::Allocate(size);
+    return PhysicalMemoryManager::Allocate(size);
 }
  
-void operator delete(void* p)
+void operator delete(void* p) noexcept
 {
-    
+    //TODO: delete
 }
  
-void operator delete[](void* p)
+void operator delete[](void* p) noexcept
 {
-    
+    //TODO: delete[]
 }
 
 void* PhysicalMemoryManager::Allocate(size_t bytes)
