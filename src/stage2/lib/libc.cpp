@@ -2,7 +2,7 @@
 
 #include "drivers/Terminal.hpp"
 
-#include <cstdarg>
+#include <stdarg.h>
 
 long pow(long num, long power)
 {

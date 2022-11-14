@@ -31,7 +31,6 @@ a20_enable:
     je .exit
 .bios_a20_gate:
     GoRealMode
-    xchg bx, bx
     ; query a20 gate support
     mov ax, 0x2403
     int 0x15

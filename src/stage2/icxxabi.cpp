@@ -1,6 +1,6 @@
 #include "icxxabi.hpp"
 
-#include <cstdint>
+#include <stdint.h>
 
 #include "lib/libc.hpp"
 

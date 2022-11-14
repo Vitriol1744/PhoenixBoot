@@ -6,8 +6,7 @@
 #include "lib/libc.hpp"
 #include "lib/PhysicalMemoryManager.hpp"
 
-#include <cstdint>
-#include <new>
+#include <stdint.h>
 
 class TextModeTerminal : public Terminal
 {

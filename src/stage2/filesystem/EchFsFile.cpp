@@ -43,6 +43,7 @@ bool EchFsFile::Open(const char* filename)
     uint32_t mainDirectoryOffset = allocationTableOffset + allocationTableSize;
     uint32_t mainDirectoryLength = identityTable.mainDirectoryLength;
     
+    //TODO: Add support for subdirectories
     EchFSDirectoryEntry directoryEntry;
     for (uint64_t i = 0; i < mainDirectoryLength * blockSize; i += sizeof(EchFSDirectoryEntry))
     {

@@ -11,6 +11,9 @@
 inline void halt() { __asm__("hlt"); }
 #endif
 
+void* operator new  (size_t count, void* ptr);
+void* operator new[](size_t count, void* ptr);
+
 struct StackFrame
 {
     StackFrame* ebp;

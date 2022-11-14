@@ -1,14 +1,15 @@
 #pragma once
 
-#include <cstdint>
+#include "common.hpp"
+
+#include <stddef.h>
+#include <stdint.h>
 
 #include "drivers/Disk.hpp"
 
 #include "filesystem/EchFsFile.hpp"
 
 #include "lib/PhysicalMemoryManager.hpp"
-
-#include <new>
 
 enum class Filesystem
 {
@@ -25,9 +26,10 @@ class Partition
             : disk(disk), partitionStartLBA(partitionStartLBA), partitionEndLBA(partitionEndLBA) 
         {
             uint8_t firstBlock[512];
-            Read(firstBlock, 0, 512);
+            if (!Read(firstBlock, 0, 512)) printf("Failed to read the partition!\n");
             
             if (strncmp((char*)firstBlock + 4, "_ECH_FS_", 8) == 0) filesystem = Filesystem::EchFS;
+            else printf("Failed to find ECHFS signature!\n");
         }
 
         inline File* OpenFile(const char* filename)
@@ -45,7 +47,7 @@ class Partition
                     break;
             }
 
-            if (!ret->Open(filename)) ret = nullptr;
+            if (ret != nullptr && !ret->Open(filename)) ret = nullptr;
             return ret;
         }
 

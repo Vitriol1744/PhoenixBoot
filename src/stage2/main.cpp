@@ -1,5 +1,5 @@
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "common.hpp"
 
@@ -36,7 +36,7 @@ extern "C"
 {
     bool a20_check(void);
     bool a20_enable(void);
-    
+
     void __cxa_finalize(void*);
 }
 extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2Main(uint8_t bootDrive, uint16_t stage2Size)
@@ -68,6 +68,10 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     File* file = part.OpenFile("PhoenixOS.elf");
     if (!file) panic("Failed to open kernel file!");
     //panic("Testing stuff...");
+
+    #if defined __x86_64__ || defined(_M_X64)
+    printf("X86_64\n");
+    #endif
 
     halt();
     __cxa_finalize(nullptr);

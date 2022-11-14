@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 
 extern "C" bool __attribute__((cdecl)) reset_disk(uint8_t drive);
 extern "C" bool __attribute__((cdecl)) get_drive_parameters(uint8_t drive, uint8_t* driveType, uint16_t* cylinders, uint16_t* sectors, uint16_t* heads);
