@@ -20,11 +20,6 @@ using ConstructorFunction = void(*)();
 extern ConstructorFunction __init_array_start[];
 extern ConstructorFunction __init_array_end[];
 
-// inline void* operator new(size_t, void* p)      noexcept { return p; }
-// inline void* operator new[](size_t, void* p)    noexcept { return p; }
-// inline void  operator delete  (void*, void*)    noexcept { };
-// inline void  operator delete[](void*, void*)    noexcept { };
-
 //TODO: Most of this stuff is temporary and just for tests, so don't judge this code
 class A
 {
@@ -37,7 +32,13 @@ class A
 
 A a;
 
-extern "C" void __cxa_finalize(void*);
+extern "C"
+{
+    bool a20_check(void);
+    bool a20_enable(void);
+    
+    void __cxa_finalize(void*);
+}
 extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2Main(uint8_t bootDrive, uint16_t stage2Size)
 {
     // Zero-out .bss section
@@ -48,6 +49,9 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x7e00 + stage2Size + 0x400);
     TextModeTerminal::Initialize();
     printf("BootDrive: 0x%x\n\n", bootDrive);
+
+    if (!a20_enable()) panic("Failed to enable a20 line!");
+    else printf("A20 successfully enabled!\n");
     
     // Call global constructors
     for (ConstructorFunction* f = __init_array_start; f < __init_array_end; f++) (*f)();
@@ -63,6 +67,7 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     
     File* file = part.OpenFile("PhoenixOS.elf");
     if (!file) panic("Failed to open kernel file!");
+    //panic("Testing stuff...");
 
     halt();
     __cxa_finalize(nullptr);

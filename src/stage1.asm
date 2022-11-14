@@ -110,13 +110,8 @@ read_stage2:
     jmp 0xffff:0x0000
 .error_msg: db 'Disk read error! Press any key to reboot...', 0x0
 .done:
-    ; try to enable a20, if failed we will try to enable it again once in protected mode
-    mov ax, 0x2403
-    int 0x15
-    jb switch_to_protected_mode
-    cmp ah, 0
-    jnz switch_to_protected_mode
-    mov ax, 0x2401
+    ; disable a20(just for tests, we will enable it once in protected mode)
+    mov ax, 0x2400
     int 0x15
 
 switch_to_protected_mode:
