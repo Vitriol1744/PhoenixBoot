@@ -7,6 +7,8 @@
 
 #define PH_UNUSED [[maybe_unused]]
 
+using symbol = void*[];
+
 #ifdef PH_ARCH_X86
 inline void halt() { __asm__("hlt"); }
 #endif

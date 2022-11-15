@@ -12,8 +12,8 @@
 #include "lib/Partition.hpp"
 #include "lib/PhysicalMemoryManager.hpp"
 
-extern uint8_t* __bss_start[];
-extern uint8_t* __bss_end[];
+extern symbol __bss_start;
+extern symbol __bss_end;
 
 using ConstructorFunction = void(*)();
 
@@ -50,11 +50,13 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     TextModeTerminal::Initialize();
     printf("BootDrive: 0x%x\n\n", bootDrive);
 
+    //TODO(very important): implement logging, e9, serial and terminal
+
     if (!a20_enable()) panic("Failed to enable a20 line!");
     else printf("A20 successfully enabled!\n");
     
     // Call global constructors
-    for (ConstructorFunction* f = __init_array_start; f < __init_array_end; f++) (*f)();
+    for (ConstructorFunction* constructor = __init_array_start; constructor < __init_array_end; constructor++) (*constructor)();
 
     //TODO: Render some cool ASCII art
     *(long long*)0xb8f00 = 0x12591241124b124f;
@@ -96,7 +98,7 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     Terminal::Get()->ClearScreen();
     PhysicalMemoryManager::Initialize(largestEntryBase, largestEntryLength);
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr1 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
     PhysicalMemoryManager::PrintFreeSpace();
     int* ptr2 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
     PhysicalMemoryManager::PrintFreeSpace();
@@ -104,11 +106,11 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr2);
     PhysicalMemoryManager::PrintFreeSpace();
-    PhysicalMemoryManager::Free(ptr);
+    PhysicalMemoryManager::Free(ptr1);
     PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr3);
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x1000);
+    int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x500);
     printf("ptr5: %x\n", (uint32_t)ptr5);
     PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr5);
