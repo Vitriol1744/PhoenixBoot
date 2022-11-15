@@ -38,44 +38,27 @@ void* PhysicalMemoryManager::Allocate(size_t bytes)
 }
 void* PhysicalMemoryManager::AllocateAligned(size_t bytes, uintptr_t alignment)
 {
+    if (!firstSegment) return AllocateBelow1M(bytes);
     MemorySegment* currentSegment = firstSegment;
+
     uint32_t toAlign = 0;
-    // Find free memory segment with size allowing us to align it
     while (currentSegment)
     {
-        if (currentSegment->free != false)
-        {
-            toAlign = alignment ? alignment - (uintptr_t)(currentSegment + 1) % alignment : 0;
-            if (currentSegment->length >= bytes + toAlign) break;
-        }
+        toAlign = alignment ? alignment - (uintptr_t)(currentSegment + 1) % alignment : 0;
+        if (currentSegment->free && currentSegment->length >= bytes + toAlign) break;
         currentSegment = currentSegment->nextSegment;
-    }        
-
-    // Align memory segment
-    MemorySegment* alignedSegment = toAlign ? (MemorySegment*)((uintptr_t)(currentSegment) + toAlign) : currentSegment;
-    alignedSegment->previousSegment = currentSegment->previousSegment;
-    if (alignedSegment->previousSegment) alignedSegment->previousSegment->nextSegment = alignedSegment;
-    alignedSegment->nextSegment = currentSegment->nextSegment;
-    // Mark segment used
-    alignedSegment->free = false;
-    
-    // Create next memory segment
-    MemorySegment* nextSegment = (MemorySegment*)((uintptr_t)(alignedSegment + 1) + bytes);
-    uint32_t nextSegmentLength = currentSegment->length - bytes - sizeof(MemorySegment) - toAlign;
-    
-    if (alignedSegment->nextSegment) alignedSegment->nextSegment->previousSegment = nextSegment;
-    nextSegment->previousSegment = alignedSegment;
-    nextSegment->nextSegment = alignedSegment->nextSegment;
+    }
+    currentSegment->free = false;
+    uint32_t nextSegmentLength = currentSegment->length - bytes - sizeof(MemorySegment);
+    currentSegment->length = bytes;
+    MemorySegment* nextSegment = (MemorySegment*)((uint8_t*)currentSegment + sizeof(MemorySegment) + currentSegment->length);
+    nextSegment->previousSegment = currentSegment;
+    nextSegment->nextSegment = currentSegment->nextSegment;
     nextSegment->length = nextSegmentLength;
-    // Mark newly created segment free
     nextSegment->free = true;
+    currentSegment->nextSegment = nextSegment;
 
-    // Point to the newly created segment
-    alignedSegment->nextSegment = nextSegment;
-    alignedSegment->length = bytes;
-
-    // return aligned segment
-    return alignedSegment + 1;
+    return (uint8_t*)(currentSegment + 1) + toAlign;
 }
 void* PhysicalMemoryManager::Callocate(size_t bytes)
 {
@@ -142,8 +125,7 @@ void PhysicalMemoryManager::PrintFreeSpace()
     while (currentSegment)
     {
         segmentCount++;
-        if (currentSegment->free)
-            freeSpace += currentSegment->length;
+        if (currentSegment->free) freeSpace += currentSegment->length;
         currentSegment = currentSegment->nextSegment;
     }
     printf("Free Space: %d, SegmentCount: %d\n", freeSpace, segmentCount);
