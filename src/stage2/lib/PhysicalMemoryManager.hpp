@@ -15,6 +15,8 @@ class PhysicalMemoryManager
         } 
         static void* Allocate(size_t bytes);
         static void* AllocateAligned(size_t bytes, uintptr_t alignment);
+        static void* Callocate(size_t bytes);
+        static void* CallocateAligned(size_t bytes, uintptr_t alignment);
         static void  Free(void* memory);
         static void* AllocateBelow1M(size_t bytes);
         static void* AllocateBelow1M_Aligned(size_t bytes, uintptr_t alignment);

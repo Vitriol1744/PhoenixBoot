@@ -95,14 +95,26 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     Terminal::Get()->ClearScreen();
     PhysicalMemoryManager::Initialize(largestEntryBase, largestEntryLength);
+    PhysicalMemoryManager::PrintFreeSpace();
     int* ptr = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::PrintFreeSpace();
     int* ptr2 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::PrintFreeSpace();
     int* ptr3 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr2);
+    PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr);
+    PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr3);
-    int* ptr5 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::PrintFreeSpace();
+    int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x1000);
+    printf("ptr5: %x\n", (uint32_t)ptr5);
+    PhysicalMemoryManager::PrintFreeSpace();
     PhysicalMemoryManager::Free(ptr5);
+    PhysicalMemoryManager::PrintFreeSpace();
+    int* ptr6 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    PhysicalMemoryManager::PrintFreeSpace();
 
     halt();
     __cxa_finalize(nullptr);
