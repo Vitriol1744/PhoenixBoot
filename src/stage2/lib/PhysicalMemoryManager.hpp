@@ -18,6 +18,7 @@ class PhysicalMemoryManager
         static void* Callocate(size_t bytes);
         static void* CallocateAligned(size_t bytes, uintptr_t alignment);
         static void  Free(void* memory);
+        // Most of the bios functions require real mode addresses, so we have to be able to allocate memory below 1M mark
         static void* AllocateBelow1M(size_t bytes);
         static void* AllocateBelow1M_Aligned(size_t bytes, uintptr_t alignment);
         static void  FreeBelow1M(size_t bytes);
@@ -27,8 +28,6 @@ class PhysicalMemoryManager
     private:
         PhysicalMemoryManager() = default;
 
-        static uint8_t* allocatorBase;
-        static uint8_t* currentPointer;
         static uint8_t* below1M_AllocatorBase;
         static uint8_t* below1M_AllocatorTop;
         static uint8_t* below1M_CurrentPointer;
