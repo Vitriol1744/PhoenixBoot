@@ -3,14 +3,14 @@
 
 #include "common.hpp"
 
-#include "arch/x86/x86.h"
+#include "Arch/x86/x86.h"
 
-#include "drivers/Disk.hpp"
-#include "drivers/TextModeTerminal.hpp"
+#include "Drivers/Disk.hpp"
+#include "Drivers/TextModeTerminal.hpp"
 
-#include "lib/libc.hpp"
-#include "lib/Partition.hpp"
-#include "lib/PhysicalMemoryManager.hpp"
+#include "Utility/libc.hpp"
+#include "Utility/Partition.hpp"
+#include "Utility/PhysicalMemoryManager.hpp"
 
 extern symbol __bss_start;
 extern symbol __bss_end;
@@ -31,6 +31,8 @@ class A
 };
 
 A a;
+
+#include "Arch/x86/IDT.hpp"
 
 extern "C"
 {
@@ -54,6 +56,11 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     if (!a20_enable()) panic("Failed to enable a20 line!");
     else printf("A20 successfully enabled!\n");
+
+    IDT idt;
+    idt.Load();
+    idt.Initialize();
+    __asm__("sti;int 0x10");
     
     // Call global constructors
     for (ConstructorFunction* constructor = __init_array_start; constructor < __init_array_end; constructor++) (*constructor)();
@@ -69,7 +76,6 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     
     File* file = part.OpenFile("PhoenixOS.elf");
     if (!file) panic("Failed to open kernel file!");
-    //panic("Testing stuff...");
 
     uint32_t continuationID = 0x00000000;
     constexpr const uint32_t MAX_MMAP_ENTRIES = 256;
@@ -98,26 +104,36 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     Terminal::Get()->ClearScreen();
     PhysicalMemoryManager::Initialize(largestEntryBase, largestEntryLength);
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr1 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr1 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr2 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr2 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr3 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr3 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    PhysicalMemoryManager::Free(ptr2);
+    delete ptr2;
     PhysicalMemoryManager::PrintFreeSpace();
-    PhysicalMemoryManager::Free(ptr1);
+    delete ptr1;
     PhysicalMemoryManager::PrintFreeSpace();
-    PhysicalMemoryManager::Free(ptr3);
+    delete ptr3;
     PhysicalMemoryManager::PrintFreeSpace();
     int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x500);
     printf("ptr5: %x\n", (uint32_t)ptr5);
     PhysicalMemoryManager::PrintFreeSpace();
-    PhysicalMemoryManager::Free(ptr5);
+    delete ptr5;
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr6 = (int*)PhysicalMemoryManager::Allocate(sizeof(int));
+    int* ptr6 = new int;
+    PhysicalMemoryManager::PrintFreeSpace();
+    delete ptr6;
     PhysicalMemoryManager::PrintFreeSpace();
 
+    printf(" ____  _                      _       ___  ____  \n");
+    printf("|  _ \\| |__   ___   ___ _ __ (_)_  __/ _ \\/ ___| \n");
+    printf("| |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ / | | \\___ \\ \n");
+    printf("|  __/| | | | (_) |  __/ | | | |>  <| |_| |___) |\n");
+    printf("|_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\___/|____/ \n");
+    //outb (0x501, 0x31);
+
+    while (true) halt();
     halt();
     __cxa_finalize(nullptr);
 }
