@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Terminal.hpp"
-#include "arch/io.hpp"
+#include "Arch/io.hpp"
 
-#include "lib/libc.hpp"
-#include "lib/PhysicalMemoryManager.hpp"
+#include "Utility/libc.hpp"
+#include "Utility/PhysicalMemoryManager.hpp"
 
 #include <stdint.h>
 

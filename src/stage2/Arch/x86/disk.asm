@@ -43,10 +43,8 @@ get_drive_parameters:
     GoRealMode
 
     ; save non-scratch registers
-    push esi
     push bx
     push es
-    push di
 
     mov dl, [bp + 8]
     mov ah, 0x08
@@ -83,10 +81,8 @@ get_drive_parameters:
     mov [es:si], cx
 
     ; load non-scratch registers
-    pop di
     pop es
     pop bx
-    pop esi
 
     ; save return value
     push eax

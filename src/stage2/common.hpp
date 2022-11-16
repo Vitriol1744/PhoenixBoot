@@ -1,9 +1,9 @@
 #pragma once
 
-#include "arch/arch.hpp"
+#include "Arch/arch.hpp"
 
-#include "lib/libc.hpp"
-#include "drivers/Terminal.hpp"
+#include "Utility/libc.hpp"
+#include "Drivers/Terminal.hpp"
 
 #define PH_UNUSED [[maybe_unused]]
 

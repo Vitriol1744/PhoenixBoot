@@ -1,6 +1,6 @@
 #include "libc.hpp"
 
-#include "drivers/Terminal.hpp"
+#include "Drivers/Terminal.hpp"
 
 #include <stdarg.h>
 

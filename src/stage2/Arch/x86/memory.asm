@@ -16,10 +16,6 @@ e820_get_next_entry:
     enter 0, 0
     GoRealMode
     push ebx
-    push ecx
-    push edx
-    push esi
-    push edi
     push ds
     push es
     
@@ -43,10 +39,6 @@ e820_get_next_entry:
 .exit:
     pop es
     pop ds
-    pop edi
-    pop esi
-    pop edx
-    pop ecx
     pop ebx
 
     push  eax

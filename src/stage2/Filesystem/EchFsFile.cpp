@@ -1,7 +1,7 @@
 #include "EchFsFile.hpp"
 
-#include "lib/libc.hpp"
-#include "lib/Partition.hpp"
+#include "Utility/libc.hpp"
+#include "Utility/Partition.hpp"
 
 struct EchFSIdentityTable
 {

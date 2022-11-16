@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#include "lib/libc.hpp"
+#include "Utility/libc.hpp"
 
 uint8_t* PhysicalMemoryManager::below1M_AllocatorBase = reinterpret_cast<uint8_t*>(0x10000);
 uint8_t* PhysicalMemoryManager::below1M_AllocatorTop = reinterpret_cast<uint8_t*>(0x0007ffff);
@@ -33,7 +33,6 @@ void PhysicalMemoryManager::Initialize(uintptr_t base, uintptr_t length)
 
 void* PhysicalMemoryManager::Allocate(size_t bytes)
 {
-    if (!firstSegment) return AllocateBelow1M(bytes);
     return AllocateAligned(bytes, 0);
 }
 void* PhysicalMemoryManager::AllocateAligned(size_t bytes, uintptr_t alignment)
@@ -41,6 +40,7 @@ void* PhysicalMemoryManager::AllocateAligned(size_t bytes, uintptr_t alignment)
     if (!firstSegment) return AllocateBelow1M(bytes);
     MemorySegment* currentSegment = firstSegment;
 
+    // Search for the suitable block that can be aligned to specifed boundary
     uint32_t toAlign = 0;
     while (currentSegment)
     {
@@ -48,16 +48,24 @@ void* PhysicalMemoryManager::AllocateAligned(size_t bytes, uintptr_t alignment)
         if (currentSegment->free && currentSegment->length >= bytes + toAlign) break;
         currentSegment = currentSegment->nextSegment;
     }
-    currentSegment->free = false;
+
+    // Calculate new segment size
     uint32_t nextSegmentLength = currentSegment->length - bytes - sizeof(MemorySegment);
+    // Mark block as used
+    currentSegment->free = false;
     currentSegment->length = bytes;
+    
+    // Create new segment
     MemorySegment* nextSegment = (MemorySegment*)((uint8_t*)currentSegment + sizeof(MemorySegment) + currentSegment->length);
-    nextSegment->previousSegment = currentSegment;
     nextSegment->nextSegment = currentSegment->nextSegment;
+    if (currentSegment->nextSegment) currentSegment->nextSegment->previousSegment = nextSegment;
+    currentSegment->nextSegment = nextSegment;
+    
+    nextSegment->previousSegment = currentSegment;
     nextSegment->length = nextSegmentLength;
     nextSegment->free = true;
-    currentSegment->nextSegment = nextSegment;
 
+    // This method of aligning might be a little bit wastefull
     return (uint8_t*)(currentSegment + 1) + toAlign;
 }
 void* PhysicalMemoryManager::Callocate(size_t bytes)

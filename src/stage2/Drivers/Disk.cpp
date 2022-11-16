@@ -1,16 +1,18 @@
 #include "Disk.hpp"
 
-#include "arch/x86/x86.h"
+//TODO: Temp
+#include "Arch/x86/x86.h"
 
-#include "drivers/Terminal.hpp"
+#include "Drivers/Terminal.hpp"
 
-#include "lib/libc.hpp"
-#include "lib/Partition.hpp"
-#include "lib/PhysicalMemoryManager.hpp"
+#include "Utility/libc.hpp"
+#include "Utility/Partition.hpp"
+#include "Utility/PhysicalMemoryManager.hpp"
 
 Disk Disk::drives[MAX_DRIVE_COUNT] = {Disk()};
 uint32_t Disk::driveCount = 0;
 
+#pragma pack(push, 1)
 struct MBR_Entry
 {
     uint8_t bootIndicator;
@@ -19,7 +21,8 @@ struct MBR_Entry
     uint8_t endCHS[3];
     uint32_t firstSector;
     uint32_t sectorCount;
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 struct MBR
 {

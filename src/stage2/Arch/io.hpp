@@ -2,10 +2,14 @@
 
 #include <stdint.h>
 
-#include "arch/arch.hpp"
+#include "Arch/arch.hpp"
 
 #ifdef PH_ARCH_X86
 static inline void outb(uint16_t port, uint8_t value)
+{
+    __asm__ volatile("out dx, al" : : "a"(value), "d"(port));
+}
+static inline void outw(uint16_t port, uint16_t value)
 {
     __asm__ volatile("out dx, al" : : "a"(value), "d"(port));
 }

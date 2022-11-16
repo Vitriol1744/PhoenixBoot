@@ -5,11 +5,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "drivers/Disk.hpp"
+#include "Drivers/Disk.hpp"
 
-#include "filesystem/EchFsFile.hpp"
+#include "Filesystem/EchFsFile.hpp"
 
-#include "lib/PhysicalMemoryManager.hpp"
+#include "Utility/PhysicalMemoryManager.hpp"
 
 enum class Filesystem
 {
