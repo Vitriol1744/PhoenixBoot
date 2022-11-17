@@ -142,6 +142,14 @@ CFUNC void printf(const char* fmt, ...)
     
     va_end(args);
 }
+template<typename T>
+void printnum(va_list args, uint32_t base)
+{
+    T value = va_arg(args, T);
+    char str[20];
+    itoa(value, str, base);
+    Terminal::Get()->PrintString(str);
+}
 CFUNC void vprintf(const char* fmt, va_list args)
 {
     for (char* c = (char*)fmt; *c != '\0'; c++)
@@ -158,51 +166,21 @@ CFUNC void vprintf(const char* fmt, va_list args)
         switch (*c)
         {
             case 'b':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = string;
-                itoa(value, str, 2);
-                while (*str != '\0')
-                {
-                    Terminal::Get()->PutChar(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, 2);
+                break;
             case 'c':
-            {
-                char c = va_arg(args, int);
-                Terminal::Get()->PutChar(c);
-            }
-            break;
+                Terminal::Get()->PutChar(va_arg(args, int));
+                break;
             case 'd':
             case 'i':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = string;
-                itoa(value, str, 10);
-                while (*str != '\0')
-                {
-                    Terminal::Get()->PutChar(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, 10);
+                break;
+            case 'l':
+                printnum<int64_t>(args, 10);
+                break;
             case 'o':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = string;
-                itoa(value, str, 8);
-                while (*str != '\0')
-                {
-                    Terminal::Get()->PutChar(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, 8);
+                break;
             case 'r':
             {
                 char* str = va_arg(args, char*);
@@ -216,44 +194,20 @@ CFUNC void vprintf(const char* fmt, va_list args)
             }
             break;
             case 's':
-            {
-                char* str = va_arg(args, char*);
-                while (*str != '\0')
-                    Terminal::Get()->PutChar(*str++);
-            }
-            break;
+                Terminal::Get()->PrintString(va_arg(args, char*));
+                break;
             case 'u':
-            {
-                unsigned int value = va_arg(args, unsigned int);
-                char string[20];
-                char* str = string;
-                itoa(static_cast<int>(value), str, 10);
-                while (*str != '\0')
-                {
-                    Terminal::Get()->PutChar(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<unsigned int>(args, 10);
+                break;
             case 'x':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = string;
-                itoa(value, str, 16);
-                while (*str != '\0')
-                {
-                    Terminal::Get()->PutChar(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, 16);
+                break;
 
             default:
                 break;
         }
     }
 
-    loop_end:
+loop_end:
     return;
 }
