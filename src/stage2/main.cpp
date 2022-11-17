@@ -57,15 +57,14 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     if (!a20_enable()) panic("Failed to enable a20 line!");
     else printf("A20 successfully enabled!\n");
 
-    IDT idt;
-    idt.Load();
-    idt.Initialize();
-    __asm__("sti;int 0x10");
-    
     // Call global constructors
     for (ConstructorFunction* constructor = __init_array_start; constructor < __init_array_end; constructor++) (*constructor)();
 
-    //TODO: Render some cool ASCII art
+    IDT idt;
+    idt.Initialize();
+    idt.Load();
+    __asm__("sti; int 32");
+
     *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
@@ -76,7 +75,7 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     
     File* file = part.OpenFile("PhoenixOS.elf");
     if (!file) panic("Failed to open kernel file!");
-
+    
     uint32_t continuationID = 0x00000000;
     constexpr const uint32_t MAX_MMAP_ENTRIES = 256;
     E820MemoryMapEntry entries[MAX_MMAP_ENTRIES];

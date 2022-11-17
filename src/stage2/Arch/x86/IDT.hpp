@@ -2,7 +2,8 @@
 
 #include "common.hpp"
 
-#if PH_ARCH == PH_ARCH_X86_64
+#if PH_ARCH == 0
+#pragma pack(push, 1)
 struct IDT_Entry
 {
     uint16_t isrLow;
@@ -22,6 +23,7 @@ struct IDT_Entry
     uint8_t flags;
     uint16_t isrHigh;
 };
+#pragma pack(pop)
 #endif
 
 constexpr const uint32_t MAX_IDT_ENTRIES = 256;
@@ -32,7 +34,7 @@ class IDT
         void Initialize();
         void Load();
 
-        void SetDescriptor(uint8_t vector, uintptr_t isr, uint8_t flags);
+        void SetDescriptor(uint8_t vector, uint64_t isr, uint8_t flags);
 
     private:
         alignas(0x10) IDT_Entry entries[MAX_IDT_ENTRIES];

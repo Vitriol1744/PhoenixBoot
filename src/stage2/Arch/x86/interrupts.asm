@@ -5,12 +5,17 @@ extern raiseException
 align 16
 exception%1:
     cld
-    enter 0, 0
+%if %1 == 8 || %1 == 10 || %1 == 11 || %1 == 12 || %1 == 13 || %1 == 14 || %1 == 17 || %1 == 30
+    pop eax
+%else
+    xor eax, eax
+%endif
+    push ebp
+    mov ebp, esp
+    push eax
     push %1
     call raiseException
-    leave
     iret
-
 %endmacro
 
 %assign i 0
