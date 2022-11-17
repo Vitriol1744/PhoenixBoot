@@ -4,7 +4,9 @@
 
 #include <stdarg.h>
 
-long pow(long num, long power)
+#define CFUNC extern "C"
+
+CFUNC long pow(long num, long power)
 {
 	int invert = 0;
 
@@ -19,7 +21,7 @@ long pow(long num, long power)
 	return (invert) ? 1 / powMult : powMult;
 }
 
-size_t strlen(const char* str)
+CFUNC size_t strlen(const char* str)
 {
     size_t bytes = 0;
     while (*str != '\0')
@@ -30,7 +32,7 @@ size_t strlen(const char* str)
 
     return bytes;
 }
-int strcmp(const char* lhs, const char* rhs)
+CFUNC int strcmp(const char* lhs, const char* rhs)
 {
     while (*lhs != '\0' && *lhs == *rhs)
     {
@@ -40,7 +42,7 @@ int strcmp(const char* lhs, const char* rhs)
     if (*lhs == *rhs) return 0;
     return (*lhs - *rhs);
 }
-int strncmp(const char* lhs, const char* rhs, size_t n)
+CFUNC int strncmp(const char* lhs, const char* rhs, size_t n)
 {
     while (*lhs != '\0' && *lhs == *rhs && n > 0)
     {
@@ -51,7 +53,7 @@ int strncmp(const char* lhs, const char* rhs, size_t n)
     if (*lhs == *rhs) return 0;
     return (*lhs - *rhs);
 }
-void* memset(void* src, char c, size_t bytes)
+CFUNC void* memset(void* src, char c, size_t bytes)
 {
     char* s = (char*)src;
 
@@ -63,7 +65,7 @@ void* memset(void* src, char c, size_t bytes)
 
     return src;
 }
-void* memcpy(void* dest, const void* src, size_t bytes)
+CFUNC void* memcpy(void* dest, const void* src, size_t bytes)
 {
     char* d = static_cast<char*>(dest);
     char* s = static_cast<char*>(const_cast<void*>(src));
@@ -76,7 +78,7 @@ void* memcpy(void* dest, const void* src, size_t bytes)
     return dest;
 }
 
-int atoi(const char* str)
+CFUNC int atoi(const char* str)
 {
     int integer = 0;
     bool isNegative = str[0] == '-';
@@ -90,7 +92,7 @@ int atoi(const char* str)
 
     return (isNegative) ? -integer : integer;
 }
-char* itoa(int value, char* str, int base)
+CFUNC char* itoa(int value, char* str, int base)
 {
     int i = 0;
     bool isNegative = false;
@@ -132,13 +134,17 @@ char* itoa(int value, char* str, int base)
     return str;
 }
 
-void printf(const char* fmt, ...)
+CFUNC void printf(const char* fmt, ...)
 {
-    char* c;
     va_list args;
     va_start(args, fmt);
-
-    for (c = (char*)fmt; *c != '\0'; c++)
+    vprintf(fmt, args);
+    
+    va_end(args);
+}
+CFUNC void vprintf(const char* fmt, va_list args)
+{
+    for (char* c = (char*)fmt; *c != '\0'; c++)
     {
         while (*c != '%')
         {

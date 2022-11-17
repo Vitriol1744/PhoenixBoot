@@ -10,7 +10,7 @@
 using symbol = void*[];
 
 #ifdef PH_ARCH_X86
-inline void halt() { __asm__("hlt"); }
+inline void halt() { while (true) __asm__("hlt"); }
 #endif
 
 void* operator new  (size_t count, void* ptr);
@@ -35,12 +35,18 @@ inline void stackTrace()
     } 
 }
 
-inline void panic(const char* msg)
+inline void panic(const char* msg, ...)
 {
     Terminal::Get()->ClearScreen(TerminalColor::eBlue);
     Terminal::Get()->SetColor(TerminalColor::eWhite, TerminalColor::eRed);
-    printf("Bootloader Panic!\n%s\n", msg);
+    printf("Bootloader Panic!\n");
     
+    va_list args;
+    va_start(args, msg);
+    vprintf(msg, args);
+    va_end(args);
+    printf("\n");
+
     stackTrace();
     halt();
 }
