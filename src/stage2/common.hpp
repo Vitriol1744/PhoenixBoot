@@ -2,8 +2,10 @@
 
 #include "Arch/arch.hpp"
 
-#include "Utility/libc.hpp"
 #include "Drivers/Terminal.hpp"
+
+#include "Utility/libc.hpp"
+#include "Utility/Logger.hpp"
 
 #define PH_UNUSED [[maybe_unused]]
 
@@ -38,14 +40,13 @@ inline void stackTrace()
 inline void panic(const char* msg, ...)
 {
     Terminal::Get()->ClearScreen(TerminalColor::eBlue);
-    Terminal::Get()->SetColor(TerminalColor::eWhite, TerminalColor::eRed);
-    printf("Bootloader Panic!\n");
+    LOG_FATAL("Bootloader Panic!\n");
     
     va_list args;
     va_start(args, msg);
-    vprintf(msg, args);
+    Logger::Log(LogLevel::eFatal, msg, args);
     va_end(args);
-    printf("\n");
+    LOG_FATAL("\n");
 
     stackTrace();
     halt();
