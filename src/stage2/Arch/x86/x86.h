@@ -13,4 +13,4 @@ struct E820MemoryMapEntry
     uint32_t type;
 } __attribute__((packed));
 
-extern "C" bool __attribute__((cdecl)) e820_get_next_entry(E820MemoryMapEntry* entry, uint32_t* continuationID);
+extern "C" uint32_t __attribute__((cdecl)) e820_get_next_entry(E820MemoryMapEntry* entry, uint32_t* continuationID);
