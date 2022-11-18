@@ -2,32 +2,52 @@
 
 #include <stddef.h>
 
-#include "Utility/libc.hpp"
+#include "common.hpp"
 
-uint8_t* PhysicalMemoryManager::below1M_AllocatorBase = reinterpret_cast<uint8_t*>(0x10000);
-uint8_t* PhysicalMemoryManager::below1M_AllocatorTop = reinterpret_cast<uint8_t*>(0x0007ffff);
-uint8_t* PhysicalMemoryManager::below1M_CurrentPointer = reinterpret_cast<uint8_t*>(0x10000);
+#include "Arch/arch.hpp"
+
+#include "Utility/libc.hpp"
+#include "Utility/Logger.hpp"
+
+MemorySegment*  PhysicalMemoryManager::firstSegment = nullptr;;
+uint8_t*        PhysicalMemoryManager::below1M_AllocatorBase = reinterpret_cast<uint8_t*>(0x10000);
+uint8_t*        PhysicalMemoryManager::below1M_AllocatorTop = reinterpret_cast<uint8_t*>(0x0007ffff);
+uint8_t*        PhysicalMemoryManager::below1M_CurrentPointer = reinterpret_cast<uint8_t*>(0x10000);
  
 void*   operator new(size_t size)   { return PhysicalMemoryManager::Allocate(size); }
 void*   operator new[](size_t size) { return PhysicalMemoryManager::Allocate(size); }
 void    operator delete(void* p)    noexcept { PhysicalMemoryManager::Free(p); }
 void    operator delete[](void* p)  noexcept { PhysicalMemoryManager::Free(p); }
 
-struct MemorySegment
-{
-    MemorySegment* previousSegment = 0;
-    MemorySegment* nextSegment = 0;
-    uint32_t length = 0;
-    bool free = true;
-};
-static MemorySegment* firstSegment = nullptr;
+static constexpr const uint32_t MAX_MMAP_ENTRIES = 256;
+static MemoryMapEntry entries[MAX_MMAP_ENTRIES];
 
-void PhysicalMemoryManager::Initialize(uintptr_t base, uintptr_t length)
-{
-    firstSegment = (MemorySegment*)base;
+void PhysicalMemoryManager::Initialize()
+{   
+    LOG_TRACE("Retrieving the memory map...\t");
+    uint64_t entriesCount = getMemoryMap(entries, MAX_MMAP_ENTRIES);
+    Terminal::Get()->SetX(76);
+    if (entriesCount > 0) LOG_INFO("[OK]\n");
+    else panic("Failed to retrieve the memory map!");
+
+    uint32_t largestEntryBase = 0;
+    uint32_t largestEntryLength = 0;
+    for (uint32_t i = 0; i < entriesCount; i++)
+    {   
+        #if 0
+        LOG_INFO("MemoryMapEntry[%i]: base: %l, length: %l,type %d\n", i, entries[i].base, entries[i].length, static_cast<uint32_t>(entries[i].type));
+        #endif
+        if (entries[i].length > largestEntryLength && entries[i].type == MemoryMapEntryType::eUsable)
+        {
+            largestEntryBase = entries[i].base;
+            largestEntryLength = entries[i].length;
+        }
+    }
+
+    firstSegment = (MemorySegment*)largestEntryBase;
     firstSegment->previousSegment = 0;
     firstSegment->nextSegment = 0;
-    firstSegment->length = length - sizeof(MemorySegment);
+    firstSegment->length = largestEntryLength - sizeof(MemorySegment);
     firstSegment->free = true;
 }        
 
@@ -136,5 +156,5 @@ void PhysicalMemoryManager::PrintFreeSpace()
         if (currentSegment->free) freeSpace += currentSegment->length;
         currentSegment = currentSegment->nextSegment;
     }
-    printf("Free Space: %d, SegmentCount: %d\n", freeSpace, segmentCount);
+    LOG_INFO("Free Space: %d, SegmentCount: %d\n", freeSpace, segmentCount);
 }

@@ -27,5 +27,5 @@ struct MemoryMapEntry
     MemoryMapEntryType type;
 };
 
-bool getMemoryMap(MemoryMapEntry* entries, uint64_t maxEntryCount, uint64_t& entryCount);
+uint32_t getMemoryMap(MemoryMapEntry* entries, uint64_t maxEntryCount);
 void initializeInterrupts();

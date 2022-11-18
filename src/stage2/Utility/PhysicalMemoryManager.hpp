@@ -3,10 +3,18 @@
 #include <stdint.h>
 #include <stddef.h>
 
+struct MemorySegment
+{
+    MemorySegment* previousSegment = 0;
+    MemorySegment* nextSegment = 0;
+    uint32_t length = 0;
+    bool free = true;
+};
+
 class PhysicalMemoryManager
 {
     public:
-        static void Initialize(uintptr_t base, uintptr_t length);
+        static void Initialize();
 
         inline static void  SetBelow1M_AllocatorBase(uintptr_t base) 
         { 
@@ -28,6 +36,7 @@ class PhysicalMemoryManager
     private:
         PhysicalMemoryManager() = default;
 
+        static MemorySegment* firstSegment;
         static uint8_t* below1M_AllocatorBase;
         static uint8_t* below1M_AllocatorTop;
         static uint8_t* below1M_CurrentPointer;

@@ -1,7 +1,7 @@
 #include "Disk.hpp"
 
 //TODO: Temp
-#include "Arch/x86/x86.h"
+#include "Arch/x86/x86.hpp"
 
 #include "Drivers/Terminal.hpp"
 
