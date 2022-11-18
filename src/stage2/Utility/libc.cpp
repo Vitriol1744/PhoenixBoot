@@ -1,6 +1,9 @@
 #include "libc.hpp"
 
+#include "Arch/io.hpp"
+
 #include "Drivers/Terminal.hpp"
+#include "Drivers/Serial.hpp"
 
 #include <stdarg.h>
 
@@ -138,27 +141,37 @@ CFUNC void printf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vprintf(fmt, args);
+    vprintf(OutputStream::eTerminal, fmt, args);
     
     va_end(args);
 }
-template<typename T>
-void printnum(va_list args, uint32_t base)
+void terminalPutChar(char c) { Terminal::Get()->PutChar(c); }
+void serialPutChar(char c) { Serial::WriteByte(c); }
+void e9PutChar(char c) { outb(0xe9, c); }
+
+using WriteCharacter = void(*)(char c);
+CFUNC void vprintf(OutputStream outputStream, const char* fmt, va_list args)
 {
-    T value = va_arg(args, T);
-    char str[20];
-    itoa(value, str, base);
-    Terminal::Get()->PrintString(str);
-}
-CFUNC void vprintf(const char* fmt, va_list args)
-{
+    WriteCharacter writeCharacter;
+    switch (outputStream)
+    {
+        case OutputStream::eTerminal:   writeCharacter = terminalPutChar;   break;
+        case OutputStream::eSerial:     writeCharacter = serialPutChar;     break;
+        case OutputStream::eE9:         writeCharacter = e9PutChar;         break;
+
+        default:
+            printf("Unrecognized output stream! Defaulting to e9 hack.\n");
+            writeCharacter = e9PutChar;
+            break;
+    }
+
     for (char* c = (char*)fmt; *c != '\0'; c++)
     {
         while (*c != '%')
         {
             if (*c == '\0') goto loop_end;
-            if (*c == '\n') Terminal::Get()->PutChar('\r');
-            Terminal::Get()->PutChar(*c);
+            if (*c == '\n') writeCharacter('\r');
+            writeCharacter(*c);
             c++;
         }
         c++;
@@ -166,21 +179,57 @@ CFUNC void vprintf(const char* fmt, va_list args)
         switch (*c)
         {
             case 'b':
-                printnum<int>(args, 2);
-                break;
+            {
+                int value = va_arg(args, int);
+                char string[20];
+                char* str = itoa(value, string, 2);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
             case 'c':
-                Terminal::Get()->PutChar(va_arg(args, int));
+                writeCharacter(va_arg(args, int));
                 break;
             case 'd':
             case 'i':
-                printnum<int>(args, 10);
-                break;
+            {
+                int value = va_arg(args, int);
+                char string[20];
+                char* str = itoa(value, string, 10);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
             case 'l':
-                printnum<int64_t>(args, 10);
+                {
+                    int64_t value = va_arg(args, int64_t);
+                    char string[20];
+                    char* str = itoa(value, string, 10);
+                    while (*str != '\0')
+                    {
+                        writeCharacter(*str);
+                        ++str;
+                    }
+                }
                 break;
             case 'o':
-                printnum<int>(args, 8);
-                break;
+            {
+                int value = va_arg(args, int);
+                char string[20];
+                char* str = itoa(value, string, 8);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
             case 'r':
             {
                 char* str = va_arg(args, char*);
@@ -188,20 +237,45 @@ CFUNC void vprintf(const char* fmt, va_list args)
                 while (*str != '\0') str++;
                 while (str >= str_start)
                 {
-                    Terminal::Get()->PutChar(*str);
+                    writeCharacter(*str);
                     str--;
                 }
             }
             break;
             case 's':
-                Terminal::Get()->PrintString(va_arg(args, char*));
-                break;
+            {
+                char* str = va_arg(args, char*);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
             case 'u':
-                printnum<unsigned int>(args, 10);
-                break;
+            {
+                unsigned int value = va_arg(args, unsigned int);
+                char string[20];
+                char* str = itoa(value, string, 10);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
             case 'x':
-                printnum<int>(args, 16);
-                break;
+            {
+                int value = va_arg(args, int);
+                char string[20];
+                char* str = itoa(value, string, 16);
+                while (*str != '\0')
+                {
+                    writeCharacter(*str);
+                    ++str;
+                }
+            }
+            break;
 
             default:
                 break;

@@ -28,7 +28,7 @@ void TextModeTerminal::PutChar(const char c)
         case '\r': x = 0;                   break;
         case '\t':
         {
-            static constexpr const uint8_t tabSize = 4;
+            static constexpr const uint8_t tabSize = 8;
             uint8_t toSkip = x % tabSize;
             if (toSkip % 8 == 0) x += 8;
             else x += tabSize - toSkip;
