@@ -4,9 +4,48 @@ __attribute__((interrupt)) void defaultInterruptHandler(void*)
 {
     panic("Captured unhandled interrupt!");
 }
+
+const char* exceptionNames[]
+{
+    "Divide-by-zero",
+    "Debug",
+    "Non-Maskable Interrupt",
+    "Breakpoint",
+    "Overflow",
+    "Bound Range Exceeded",
+    "Invalid Opcode",
+    "Device not available",
+    "Double Fault",
+    "Coprocessor Segment Overrun",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack-Segment Fault",
+    "General Protection Fault",
+    "Page Fault",
+    "Reserved",
+    "x87 Floating-Point Exception",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating-Point Exception",
+    "Virtualization Exception",
+    "Control Protection Exception",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Hypervisor Injection Exception",
+    "VMM Communication Exception",
+    "Security Exception",
+    "Reserved",
+    "Triple Fault",
+    "FPU Error Interrupt",
+};
+
 extern "C" void raiseException(uint32_t exceptionVector, uint32_t errorCode, uint32_t ebp, uint32_t eip)
 {
-    panic("Captured unhandled exception!\ninterrupt vector: %d, eip: %x", exceptionVector, eip);
+    panic("Captured unhandled exception: '%s'\nError Code: %d\neip: %x", exceptionNames[exceptionVector], errorCode, eip);
 }
 
 using ExceptionISR = void(*)();
@@ -16,17 +55,10 @@ constexpr const uint8_t CODE_SELECTOR32 = 0x08;
 
 void IDT::Initialize()
 {
-    for (uint32_t vector = 32; vector < MAX_IDT_ENTRIES; vector++)
-        SetDescriptor(vector, reinterpret_cast<uintptr_t>(defaultInterruptHandler), 0x8e);
-
     for (uint32_t vector = 0; vector < 32; vector++)
         SetDescriptor(vector, reinterpret_cast<uintptr_t>(exceptions[vector]), 0x8e);
-
-    //for (uint32_t vector = 0; vector < 32; vector++)
-    //{
-    //    printf("Vector: %i, Addr: %x", vector, (uint32_t)entries[vector].isrLow);
-    //}
-    //while (true) halt();
+    for (uint32_t vector = 32; vector < MAX_IDT_ENTRIES; vector++)
+        SetDescriptor(vector, reinterpret_cast<uintptr_t>(defaultInterruptHandler), 0x8e);
 }
 #pragma pack(push, 1)
 struct IDT_Descriptor
