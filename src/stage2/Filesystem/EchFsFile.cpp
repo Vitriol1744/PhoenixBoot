@@ -53,25 +53,28 @@ bool EchFsFile::Open(const char* filename)
         {
             startLBA = directoryEntry.startingBlock;
             size = directoryEntry.fileSize;
-            printf("File found!\nfile size: %d\n", size);
-            printf("file size in blocks: %d\n", (uint32_t)size / blockSize + 1);
+            #if 0
+            LOG_INFO("file size in blocks: %d\n", (uint32_t)size / blockSize + 1);
+            #endif
             break;
         }
     }
 
+    #if 0
     static bool initialized = false;
     if (!initialized)
     {
-        printf("bytes per block: %d\n", identityTable.bytesPerBlock);
-        printf("block count: %d\n", identityTable.blockCount);
-        printf("allocation table size: %d\n", allocationTableSize);
-        printf("allocation table start: %d\n", allocationTableOffset);
-        printf("main directory start: %d\n", mainDirectoryOffset);
-        printf("main directory size: %d\n", mainDirectoryLength);
-        printf("reserved blocks: %d\n", identityTable.reserved);
-        printf("usable blocks: %d\n", identityTable.blockCount - identityTable.reserved);
+        LOG_INFO("bytes per block: %d\n", identityTable.bytesPerBlock);
+        LOG_INFO("block count: %d\n", identityTable.blockCount);
+        LOG_INFO("allocation table size: %d\n", allocationTableSize);
+        LOG_INFO("allocation table start: %d\n", allocationTableOffset);
+        LOG_INFO("main directory start: %d\n", mainDirectoryOffset);
+        LOG_INFO("main directory size: %d\n", mainDirectoryLength);
+        LOG_INFO("reserved blocks: %d\n", identityTable.reserved);
+        LOG_INFO("usable blocks: %d\n", identityTable.blockCount - identityTable.reserved);
         initialized = true;
     }
+    #endif
 
     return true;
 }

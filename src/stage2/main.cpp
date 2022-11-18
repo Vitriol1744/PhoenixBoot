@@ -3,12 +3,12 @@
 
 #include "common.hpp"
 
-#include "Arch/x86/x86.h"
-
 #include "Drivers/Disk.hpp"
 #include "Drivers/TextModeTerminal.hpp"
+#include "Drivers/Serial.hpp"
 
 #include "Utility/libc.hpp"
+#include "Utility/Logger.hpp"
 #include "Utility/Partition.hpp"
 #include "Utility/PhysicalMemoryManager.hpp"
 
@@ -20,17 +20,7 @@ using ConstructorFunction = void(*)();
 extern ConstructorFunction __init_array_start[];
 extern ConstructorFunction __init_array_end[];
 
-//TODO: Most of this stuff is temporary and just for tests, so don't judge this code
-class A
-{
-    public:
-        A() {  }
-        ~A() { *c = 0x47; }
-
-        char* c = reinterpret_cast<char*>(0xb800a);
-};
-
-A a;
+#define QemuExit() outb (0x501, 0x31)
 
 #include "Arch/x86/IDT.hpp"
 
@@ -39,6 +29,14 @@ extern "C"
     bool a20_check(void);
     bool a20_enable(void);
 
+    void initializeConstructors()
+    {
+        for (ConstructorFunction* entry = __init_array_start; entry < __init_array_end; entry++)
+        {
+            ConstructorFunction constructor = *entry;
+            constructor();
+        }
+    }
     void __cxa_finalize(void*);
 }
 extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2Main(uint8_t bootDrive, uint16_t stage2Size)
@@ -50,20 +48,23 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x50000 + stage2Size);
     TextModeTerminal::Initialize();
-    printf("BootDrive: 0x%x\n\n", bootDrive);
+    Logger::SetOutputStreams(static_cast<OutputStream>(Logger::GetOutputStreams() | OutputStream::eTerminal));
+    LOG_INFO("BootDrive: 0x%x\n\n", bootDrive);
 
-    //TODO(very important): implement logging, e9, serial and terminal
-
+    LOG_TRACE("Enabling A20 Line...\t");
+    Terminal::Get()->SetX(76);
     if (!a20_enable()) panic("Failed to enable a20 line!");
-    else printf("A20 successfully enabled!\n");
+    else LOG_INFO("[OK]\n");
+
+    PhysicalMemoryManager::Initialize();
+
+    Serial::Initialize();
+    Logger::SetOutputStreams(static_cast<OutputStream>(Logger::GetOutputStreams() | OutputStream::eSerial));
 
     // Call global constructors
-    for (ConstructorFunction* constructor = __init_array_start; constructor < __init_array_end; constructor++) (*constructor)();
+    initializeConstructors();
 
-    IDT idt;
-    idt.Initialize();
-    idt.Load();
-    __asm__("sti; int 32");
+    initializeInterrupts();
 
     *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
@@ -73,35 +74,15 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     Disk* drives = Disk::GetDrives();
     Partition part = drives[0].GetPartition(0);
     
-    File* file = part.OpenFile("PhoenixOS.elf");
+    const char* kernelFileName = "PhoenixOS.elf";
+    File* file = part.OpenFile(kernelFileName);
+    LOG_TRACE("Searching for %s file...\t", kernelFileName);
+    Terminal::Get()->SetX(76);
     if (!file) panic("Failed to open kernel file!");
-    
-    uint32_t continuationID = 0x00000000;
-    constexpr const uint32_t MAX_MMAP_ENTRIES = 256;
-    E820MemoryMapEntry entries[MAX_MMAP_ENTRIES];
-    uint32_t memoryMapEntriesCount = 0;
-    for (uint32_t i = 0; i < MAX_MMAP_ENTRIES; i++)
-    {
-        e820_get_next_entry(entries + i, &continuationID);
-        printf("MemoryMapEntry:\nBase: %x\nLength: %x\nType: %x\n", (uint32_t)entries[i].base, (uint32_t)entries[i].length, entries[i].type);
-    
-        ++memoryMapEntriesCount;
-        if (continuationID == 0) break;
-    }
+    else LOG_INFO("[OK]\n");
 
-    uint32_t largestEntryBase = 0;
-    uint32_t largestEntryLength = 0;
-    for (uint32_t i = 0; i < memoryMapEntriesCount; i++)
-    {
-        if (entries[i].length > largestEntryLength && entries[i].type == 1)
-        {
-            largestEntryBase = entries[i].base;
-            largestEntryLength = entries[i].length;
-        }
-    }
-
+    halt();
     Terminal::Get()->ClearScreen();
-    PhysicalMemoryManager::Initialize(largestEntryBase, largestEntryLength);
     PhysicalMemoryManager::PrintFreeSpace();
     int* ptr1 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
@@ -125,14 +106,13 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     delete ptr6;
     PhysicalMemoryManager::PrintFreeSpace();
 
-    printf(" ____  _                      _       ___  ____  \n");
-    printf("|  _ \\| |__   ___   ___ _ __ (_)_  __/ _ \\/ ___| \n");
-    printf("| |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ / | | \\___ \\ \n");
-    printf("|  __/| | | | (_) |  __/ | | | |>  <| |_| |___) |\n");
-    printf("|_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\___/|____/ \n");
-    //outb (0x501, 0x31);
+    LOG_INFO(" ____  _                      _       ___  ____  \n");
+    LOG_INFO("|  _ \\| |__   ___   ___ _ __ (_)_  __/ _ \\/ ___| \n");
+    LOG_INFO("| |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ / | | \\___ \\ \n");
+    LOG_INFO("|  __/| | | | (_) |  __/ | | | |>  <| |_| |___) |\n");
+    LOG_INFO("|_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\___/|____/ \n");
+    //QemuExit();
 
-    while (true) halt();
     halt();
     __cxa_finalize(nullptr);
 }
