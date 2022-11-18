@@ -7,9 +7,20 @@ CXX := clang++
 AS := nasm
 LD := ld
 
+CXX_DEFINES := PH_DEBUG PH_ARCH=PH_ARCH_X86_64
+CXX_DEF_FLAGS := $(addprefix -D,$(CXX_DEFINES))
+
+CXX_INC_DIRS := src/stage2
+CXX_INC_FLAGS := $(addprefix -I,$(CXX_INC_DIRS))
+AS_INC_DIRS := src/stage2/Arch/x86
+AS_INC_FLAGS := $(addprefix -i,$(AS_INC_DIRS))
+
+CXX_WARN_LEVELS := all extra pedantic
+CXX_WARN_FLAGS := $(addprefix -W,$(CXX_WARN_LEVELS))
+
 INTERNAL_CXX_FLAGS := -std=c++20 -ffreestanding -nostdlib -fno-pic -fno-stack-protector -mno-red-zone -mno-sse -mno-sse2 -mno-mmx -mno-80387 -fno-exceptions -fno-rtti
-CXX_FLAGS := -Isrc/stage2 -mabi=sysv -march=x86-64 -target x86_64-none -DPH_ARCH=PH_ARCH_X86_64 -m32 -Wall -Wextra -Wpedantic -masm=intel $(INTERNAL_CXX_FLAGS)
-AS_FLAGS := -isrc/stage2/Arch/x86 -felf32
+CXX_FLAGS := $(CXX_DEF_FLAGS) $(CXX_INC_FLAGS) $(CXX_WARN_FLAGS) $(INTERNAL_CXX_FLAGS) -mabi=sysv -march=x86-64 -target x86_64-none -m32 -masm=intel
+AS_FLAGS := $(AS_INC_FLAGS) -felf32
 LD_FLAGS := -nostdlib -no-pie -melf_i386 -s -T linker.ld
 
 SRCS := $(shell find $(SRC_DIR)/stage2 -name '*.cpp' -or -name '*.asm')
