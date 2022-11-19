@@ -40,10 +40,13 @@ void Serial::Initialize()
 
 void Serial::WriteByte(uint8_t byte)
 {
-    while ((inb(SERIAL_PORT1 + 5) & 0x20) == 0) outb(SERIAL_PORT1, byte);
+    while ((inb(SERIAL_PORT1 + 5) & 0x20) == 0)
+        ;
+    outb(SERIAL_PORT1, byte);
 }
-int16_t Serial::ReadByte(uint8_t byte)
+uint8_t Serial::ReadByte(uint8_t byte)
 {
-    if ((inb(SERIAL_PORT1 + 5) & 0x01) == 0) return -1;
+    while ((inb(SERIAL_PORT1 + 5) & 0x01) == 0)
+        ;
     return inb(SERIAL_PORT1);
 }
