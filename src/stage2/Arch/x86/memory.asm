@@ -1,15 +1,5 @@
 %include 'x86_cpu_modes.inc'
 
-%macro LinearToSegOffset 4
-    mov %3, %1
-
-    shr %3, 4
-    mov %2, %4
-    mov %3, %1
-
-    and %3, 0x0f
-%endmacro
-
 use32
 global e820_get_next_entry
 e820_get_next_entry:

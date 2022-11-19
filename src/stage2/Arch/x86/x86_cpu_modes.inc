@@ -43,3 +43,13 @@ use16
     mov ss, ax
 
 %endmacro
+
+%macro LinearToSegOffset 4
+    mov %3, %1
+
+    shr %3, 4
+    mov %2, %4
+    mov %3, %1
+
+    and %3, 0x0f
+%endmacro

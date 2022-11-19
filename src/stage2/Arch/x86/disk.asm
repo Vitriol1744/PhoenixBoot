@@ -1,16 +1,6 @@
 use32
 %include 'x86_cpu_modes.inc'
 
-%macro LinearToSegOffset 4
-    mov %3, %1
-
-    shr %3, 4
-    mov %2, %4
-    mov %3, %1
-
-    and %3, 0x0f
-%endmacro
-
 global reset_disk
 reset_disk:
     enter 0, 0
