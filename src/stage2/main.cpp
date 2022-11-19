@@ -17,6 +17,14 @@ extern symbol __bss_end;
 
 using ConstructorFunction = void(*)();
 
+struct A
+{
+    A() { *c = 0x41; }
+
+    char* c = (char*)0xb8000;
+};
+A a;
+
 extern ConstructorFunction __init_array_start[];
 extern ConstructorFunction __init_array_end[];
 
@@ -45,14 +53,14 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     uint8_t* bss_start  = reinterpret_cast<uint8_t*>(__bss_start);
     uint8_t* bss_end    = reinterpret_cast<uint8_t*>(__bss_end);
     for (uint8_t* p = bss_start; p < bss_end; p++) *p = 0;
-
-    PhysicalMemoryManager::SetBelow1M_AllocatorBase(0x50000 + stage2Size);
+    
+    PhysicalMemoryManager::SetBelow1M_AllocatorBase(85480 + 0x7e00);
     TextModeTerminal::Initialize();
     Logger::SetOutputStreams(static_cast<OutputStream>(Logger::GetOutputStreams() | OutputStream::eTerminal));
     LOG_INFO("BootDrive: 0x%x\n\n", bootDrive);
+    LOG_INFO("Stage2 size: %d\n");
 
     LOG_TRACE("Enabling A20 Line...\t");
-    Terminal::Get()->SetX(76);
     if (!a20_enable()) panic("Failed to enable a20 line!");
     else LOG_INFO("[OK]\n");
 
@@ -66,6 +74,9 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     initializeInterrupts();
 
+    FramebufferInfo framebufferInfo;
+    getFramebufferInfo(framebufferInfo);
+
     *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
@@ -77,7 +88,6 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     const char* kernelFileName = "PhoenixOS.elf";
     File* file = part.OpenFile(kernelFileName);
     LOG_TRACE("Searching for %s file...\t", kernelFileName);
-    Terminal::Get()->SetX(76);
     if (!file) panic("Failed to open kernel file!");
     else LOG_INFO("[OK]\n");
 
@@ -111,9 +121,9 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     LOG_INFO("| |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ / | | \\___ \\ \n");
     LOG_INFO("|  __/| | | | (_) |  __/ | | | |>  <| |_| |___) |\n");
     LOG_INFO("|_|   |_| |_|\\___/ \\___|_| |_|_/_/\\_\\___/|____/ \n");
-    //QemuExit();
 
     halt();
+    QemuExit();
     __cxa_finalize(nullptr);
 }
 

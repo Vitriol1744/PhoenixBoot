@@ -27,5 +27,15 @@ struct MemoryMapEntry
     MemoryMapEntryType type;
 };
 
+struct FramebufferInfo
+{
+    uint64_t framebufferBase;
+    uint32_t width;
+    uint32_t height;
+    uint32_t bpp;
+    uint32_t pitch;
+};
+
 uint32_t getMemoryMap(MemoryMapEntry* entries, uint64_t maxEntryCount);
 void initializeInterrupts();
+void getFramebufferInfo(FramebufferInfo& framebufferInfo);

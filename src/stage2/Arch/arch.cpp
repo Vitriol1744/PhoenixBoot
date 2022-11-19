@@ -4,6 +4,7 @@
 #include "Arch/x86/x86.hpp"
 #include "Arch/x86/IDT.hpp"
 #include "Arch/x86/PIC.hpp"
+#include "Arch/x86/vbe.hpp"
 
 #include "common.hpp"
 
@@ -28,12 +29,23 @@ uint32_t getMemoryMap(MemoryMapEntry* entries, uint64_t maxEntryCount)
     return entryCount;
 }
 
-IDT idt;
+static IDT idt;
 void initializeInterrupts()
 {
     PIC::MaskAll();
     PIC::Flush();
     idt.Initialize();
     idt.Load();
+}
+void getFramebufferInfo(FramebufferInfo& framebufferInfo)
+{
+    VbeControllerInfo controllerInfo;
+    LOG_TRACE("%x\n", (uint32_t)(&controllerInfo));
+    LOG_TRACE("Initializing framebuffer...");
+    if (!vbe_get_controller_info(&controllerInfo)) LOG_ERROR("[FAILED]\n");
+    LOG_INFO("[OK]\n");
+
+    vbeInitializeGraphicsMode();
+    halt();
 }
 #endif
