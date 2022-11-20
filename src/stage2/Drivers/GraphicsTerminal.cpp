@@ -109,16 +109,17 @@ void GraphicsTerminal::PutChar(char c)
 
 TerminalColor GraphicsTerminal::GetForegroundColor() const
 {
-    
+    return ToTerminalColor(foregroundColor & 0xffffff);
 }
 TerminalColor GraphicsTerminal::GetBackgroundColor() const
 {
-
+    return ToTerminalColor(backgroundColor & 0xffffff);
 }
 
 void GraphicsTerminal::SetColor(const TerminalColor foregroundColor, const TerminalColor backgroundColor)
 {
-
+    this->foregroundColor = ToRGB(foregroundColor);
+    this->backgroundColor = ToRGB(backgroundColor);
 }
 void GraphicsTerminal::SetX(const uint32_t _x)
 {
@@ -145,6 +146,51 @@ GraphicsTerminal::GraphicsTerminal(FramebufferInfo& framebufferInfo, uint8_t* fo
     terminal = this;
 }
 
+uint32_t GraphicsTerminal::ToRGB(TerminalColor color) const
+{
+    switch (color)
+    {
+        case TerminalColor::eBlack:         return 0x00000000;
+        case TerminalColor::eBlue:          return 0x000000ff;
+        case TerminalColor::eGreen:         return 0x0000ff00;
+        case TerminalColor::eCyan:          return 0x0000ffff;
+        case TerminalColor::eRed:           return 0x00ff0000;
+        case TerminalColor::eMagenta:       return 0x00ff00ff;
+        case TerminalColor::eBrown:         return 0x00964b00;
+        case TerminalColor::eLightGrey:     return 0x00d3d3d3;
+        case TerminalColor::eDarkGrey:      return 0x005a5a5a;
+        case TerminalColor::eLightBlue:     return 0x00add8e6;
+        case TerminalColor::eLightCyan:     return 0x00e0ffff;
+        case TerminalColor::eLightRed:      return 0x00ffcccb;
+        case TerminalColor::eLightMagenta:  return 0x00ff80ff;
+        case TerminalColor::eYellow:        return 0x00ffff00;
+        case TerminalColor::eWhite:         return 0x00ffffff;
+    }
+    return 0x00ffffff;
+}
+TerminalColor GraphicsTerminal::ToTerminalColor(uint32_t color) const
+{
+    switch (color)
+    {
+        case 0x000000: return TerminalColor::eBlack;
+        case 0x0000ff: return TerminalColor::eBlue;
+        case 0x00ff00: return TerminalColor::eGreen;
+        case 0x00ffff: return TerminalColor::eCyan;
+        case 0xff0000: return TerminalColor::eRed;
+        case 0xff00ff: return TerminalColor::eMagenta;
+        case 0x964b00: return TerminalColor::eBrown;
+        case 0xd3d3d3: return TerminalColor::eLightGrey;
+        case 0x5a5a5a: return TerminalColor::eDarkGrey;
+        case 0xadd8e6: return TerminalColor::eLightBlue;
+        case 0xe0ffff: return TerminalColor::eLightCyan;
+        case 0xffcccb: return TerminalColor::eLightRed;
+        case 0xff80ff: return TerminalColor::eLightMagenta;
+        case 0xffff00: return TerminalColor::eYellow;
+        case 0xffffff: return TerminalColor::eWhite;
+    }
+
+    return TerminalColor::eWhite;
+}
 void GraphicsTerminal::PutPixel(uint32_t pixel, uint32_t _x, uint32_t _y)
 {
     uint32_t* pixelOffset = (uint32_t*)(_y * framebufferInfo.pitch + (_x * (framebufferInfo.bpp / 8)) + framebufferInfo.framebufferBase);

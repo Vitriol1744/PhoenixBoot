@@ -77,16 +77,17 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     const char* kernelFileName = "PhoenixOS.elf";
     File* kernelFile = volume->OpenFile(kernelFileName);
+    
     LOG_TRACE("Searching for %s file...\t", kernelFileName);
     if (!kernelFile) panic("Failed to open kernel file!");
     else LOG_INFO("[OK]\n");
+    
     void* kernel = PhysicalMemoryManager::Allocate(kernelFile->GetSize());
     kernelFile->ReadAll(kernel);
-    LOG_INFO("kernel addr: %x\n", (uint32_t)kernel);
-    __asm__ volatile("xchg bx, bx");
+    
     File* fontFile = volume->OpenFile("font.psf");
     if (!fontFile) panic("Failed to open font.psf!\n");
-    
+
     uint8_t* font = (uint8_t*)PhysicalMemoryManager::Allocate(fontFile->GetSize());
     fontFile->ReadAll(font);
     
@@ -95,7 +96,9 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     GraphicsTerminal::Initialize(framebufferInfo, font);
     Terminal::Get()->ClearScreen(TerminalColor::eCyan);
     Terminal::Get()->PutChar(0x41);
-    printf("Yo! Graphics Terminal is up and running! x: %d, y: %d", 17, 477);
+    Terminal::Get()->PrintString("Hello, World!\n\r");
+    Terminal::Get()->PrintString("Hello, World!\n\r");
+    LOG_INFO("Yo! Graphics Terminal is up and running! x: %d, y: %d", 17, 477);
 
     halt();
     Terminal::Get()->ClearScreen();

@@ -24,6 +24,8 @@ class GraphicsTerminal : public Terminal
     private:
         GraphicsTerminal(FramebufferInfo& framebufferInfo, uint8_t* font);
 
+        uint32_t ToRGB(TerminalColor color) const;
+        TerminalColor ToTerminalColor(uint32_t color) const;
         void PutPixel(uint32_t pixel, uint32_t _x, uint32_t _y);
         
         FramebufferInfo framebufferInfo;
