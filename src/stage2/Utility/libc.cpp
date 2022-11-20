@@ -141,7 +141,7 @@ CFUNC void printf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    vprintf(OutputStream::eTerminal, fmt, args);
+    vprintf(OutputStream::eSerial, fmt, args);
     
     va_end(args);
 }
@@ -150,6 +150,15 @@ void serialPutChar(char c) { Serial::WriteByte(c); }
 void e9PutChar(char c) { outb(0xe9, c); }
 
 using WriteCharacter = void(*)(char c);
+template<typename T>
+void printnum(va_list& args, WriteCharacter writeCharacter, uint32_t base)
+{
+    T value = va_arg(args, T);
+    char string[20];
+    char* str = itoa(value, string, base);
+    while (*str != '\0') writeCharacter(*str++);
+}
+
 CFUNC void vprintf(OutputStream outputStream, const char* fmt, va_list args)
 {
     WriteCharacter writeCharacter;
@@ -179,57 +188,20 @@ CFUNC void vprintf(OutputStream outputStream, const char* fmt, va_list args)
         switch (*c)
         {
             case 'b':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = itoa(value, string, 2);
-                while (*str != '\0')
-                {
-                    writeCharacter(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, writeCharacter, 2);
+                break;
             case 'c':
                 writeCharacter(va_arg(args, int));
                 break;
             case 'd':
             case 'i':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = itoa(value, string, 10);
-                while (*str != '\0')
-                {
-                    writeCharacter(*str);
-                    ++str;
-                }
-            }
-            break;
-            case 'l':
-                {
-                    int64_t value = va_arg(args, int64_t);
-                    char string[20];
-                    char* str = itoa(value, string, 10);
-                    while (*str != '\0')
-                    {
-                        writeCharacter(*str);
-                        ++str;
-                    }
-                }
+                printnum<int>(args, writeCharacter, 10);
                 break;
+            case 'l':
+            printnum<int64_t>(args, writeCharacter, 10);
             case 'o':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = itoa(value, string, 8);
-                while (*str != '\0')
-                {
-                    writeCharacter(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, writeCharacter, 8);
+                break;
             case 'r':
             {
                 char* str = va_arg(args, char*);
@@ -253,29 +225,11 @@ CFUNC void vprintf(OutputStream outputStream, const char* fmt, va_list args)
             }
             break;
             case 'u':
-            {
-                unsigned int value = va_arg(args, unsigned int);
-                char string[20];
-                char* str = itoa(value, string, 10);
-                while (*str != '\0')
-                {
-                    writeCharacter(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<unsigned int>(args, writeCharacter, 10);
+                break;
             case 'x':
-            {
-                int value = va_arg(args, int);
-                char string[20];
-                char* str = itoa(value, string, 16);
-                while (*str != '\0')
-                {
-                    writeCharacter(*str);
-                    ++str;
-                }
-            }
-            break;
+                printnum<int>(args, writeCharacter, 16);
+                break;
 
             default:
                 break;
