@@ -6,50 +6,10 @@
 #include "Drivers/Terminal.hpp"
 
 #include "Utility/libc.hpp"
-#include "Utility/Partition.hpp"
 #include "Utility/PhysicalMemoryManager.hpp"
 
-Disk Disk::drives[MAX_DRIVE_COUNT] = {Disk()};
-uint32_t Disk::driveCount = 0;
-
-#pragma pack(push, 1)
-struct MBR_Entry
+bool Disk::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint64_t& lbaEnd)
 {
-    uint8_t bootIndicator;
-    uint8_t startCHS[3];
-    uint8_t systemID;
-    uint8_t endCHS[3];
-    uint32_t firstSector;
-    uint32_t sectorCount;
-};
-#pragma pack(pop)
-
-struct MBR
-{
-    char code[446];
-    MBR_Entry entries[4];
-};
-
-void Disk::DetectAllDrives()
-{
-    uint8_t* temporaryBuffer = reinterpret_cast<uint8_t*>(PhysicalMemoryManager::AllocateBelow1M(512));
-    for (uint32_t i = 0x80; i < 0x8f; i++)
-    {
-        uint8_t driveType;
-        uint16_t cylinders, sectors, heads;
-        if (!get_drive_parameters(i, &driveType, &cylinders, &sectors, &heads)) continue;
-        if (!reset_disk(i)) continue;
-        if (!read_sectors(i, 0, 1, 0, temporaryBuffer, 1)) continue;
-
-        drives[driveCount++] = Disk(i, driveType, cylinders, sectors, heads);
-    }
-    PhysicalMemoryManager::FreeBelow1M(512);
-}
-
-Partition Disk::GetPartition(uint32_t partitionIndex)
-{
-    //TODO: Add Extended MBR partitions support
-    //TODO: Add GPT Support
     MBR mbr;
     Read(&mbr, 0, 512);
     MBR_Entry* entry = &mbr.entries[partitionIndex];
@@ -66,7 +26,11 @@ Partition Disk::GetPartition(uint32_t partitionIndex)
     head = entry->endCHS[0];
     uint32_t partitionEndLBA    = LBA(cylinder, sector, head);
     
-    return Partition(*this, partitionStartLBA, partitionEndLBA);
+    lbaStart = partitionStartLBA;
+    lbaEnd = partitionEndLBA;
+    return true;
+    //TODO: Add Extended MBR partitions support
+    //TODO: Add GPT Support
 }
 bool Disk::Read(void* buffer, uint64_t offset, uint64_t bytes)
 {

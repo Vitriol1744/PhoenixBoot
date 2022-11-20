@@ -1,7 +1,8 @@
 #include "EchFsFile.hpp"
 
+#include "Filesystem/Volume.hpp"
+
 #include "Utility/libc.hpp"
-#include "Utility/Partition.hpp"
 
 struct EchFSIdentityTable
 {
@@ -33,7 +34,7 @@ struct EchFSDirectoryEntry
 bool EchFsFile::Open(const char* filename)
 {
     EchFSIdentityTable identityTable;
-    if (part->Read(&identityTable, 0, sizeof(identityTable)));
+    if (volume->Read(&identityTable, 0, sizeof(identityTable)));
 
     uint32_t blockSize = identityTable.bytesPerBlock;
 
@@ -48,7 +49,7 @@ bool EchFsFile::Open(const char* filename)
     for (uint64_t i = 0; i < mainDirectoryLength * blockSize; i += sizeof(EchFSDirectoryEntry))
     {
         uint64_t offset = mainDirectoryOffset * blockSize + i;
-        part->Read(&directoryEntry, offset, sizeof(EchFSDirectoryEntry));
+        volume->Read(&directoryEntry, offset, sizeof(EchFSDirectoryEntry));
         if (strcmp((char*)directoryEntry.name, filename) == 0)
         {
             startLBA = directoryEntry.startingBlock;
@@ -83,7 +84,8 @@ bool EchFsFile::Read(void* buffer, uint64_t bytes)
 {
     if (bytes > size - filePtr) return false;
 
-    if (!part->Read(buffer, startLBA * 512 + filePtr, bytes)) return false;
+    //FIXME: Block is not necessarily 512 bytes
+    if (!volume->Read(buffer, startLBA * 512 + filePtr, bytes)) return false;
     filePtr += bytes;
 
     return true;

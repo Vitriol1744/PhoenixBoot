@@ -2,14 +2,14 @@
 
 #include "common.hpp"
 
-#include <stddef.h>
-#include <stdint.h>
-
 #include "Drivers/Disk.hpp"
 
+#include "Filesystem/File.hpp"
 #include "Filesystem/EchFsFile.hpp"
 
 #include "Utility/PhysicalMemoryManager.hpp"
+
+static constexpr const uint32_t MAX_VOLUMES = 256;
 
 enum class Filesystem
 {
@@ -17,20 +17,15 @@ enum class Filesystem
     EchFS,
 };
 
-class File;
-
-class Partition
+class Volume
 {
     public:
-        inline Partition(Disk& disk, uint32_t partitionStartLBA, uint32_t partitionEndLBA)
-            : disk(disk), partitionStartLBA(partitionStartLBA), partitionEndLBA(partitionEndLBA) 
-        {
-            uint8_t firstBlock[512];
-            if (!Read(firstBlock, 0, 512)) printf("Failed to read the partition!\n");
-            
-            if (strncmp((char*)firstBlock + 4, "_ECH_FS_", 8) == 0) filesystem = Filesystem::EchFS;
-            else printf("Failed to find ECHFS signature!\n");
-        }
+        Volume() = default;
+        Volume(Disk& disk, uint64_t partitionIndex, uint64_t lbaStart, uint64_t lbaEnd);
+
+        static void DetectVolumes();
+        inline static Volume* GetVolumes() { return volumes; }
+        inline static uint32_t GetVolumeCount() { return volumeCount; }
 
         inline File* OpenFile(const char* filename)
         {
@@ -51,11 +46,15 @@ class Partition
             return ret;
         }
 
-        inline bool Read(void* buffer, uint64_t offset, uint64_t bytes) { return disk.Read(buffer, partitionStartLBA * 512 + offset, bytes); }
+        inline bool Read(void* buffer, uint64_t offset, uint64_t bytes) { return disk.Read(buffer, lbaStart * 512 + offset, bytes); }
 
     private:
+        static Volume volumes[MAX_VOLUMES];
+        static uint32_t volumeCount;
+
         Disk disk;
-        uint32_t partitionStartLBA;
-        uint32_t partitionEndLBA;
+        uint64_t partitionIndex;
+        uint64_t lbaStart;
+        uint64_t lbaEnd;
         Filesystem filesystem;
 };

@@ -7,11 +7,8 @@ class Partition;
 class EchFsFile : public File
 {
     public:
-        EchFsFile(Partition* part) : File(part) { }
-        ~EchFsFile()
-        {
-            
-        }
+        EchFsFile(Volume* volume) : File(volume) { }
+        ~EchFsFile() = default;
 
         virtual bool Open(const char* filename) override;
         virtual bool Read(void* buffer, uint64_t bytes) override;

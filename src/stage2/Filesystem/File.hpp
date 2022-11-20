@@ -2,12 +2,12 @@
 
 #include <stdint.h>
 
-class Partition;
+class Volume;
 
 class File
 {
     public:
-        File(Partition* part) { this->part = part; }
+        File(Volume* volume) { this->volume = volume; }
         virtual ~File() = default;
 
         virtual bool Open(const char* filename) = 0;
@@ -17,6 +17,6 @@ class File
         inline uint64_t GetSize() const { return size; }
 
     protected:
-        Partition* part;
+        Volume* volume;
         uint64_t size;
 };
