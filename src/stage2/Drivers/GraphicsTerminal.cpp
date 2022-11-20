@@ -38,13 +38,11 @@ void GraphicsTerminal::Initialize(FramebufferInfo& framebufferInfo, uint8_t* fon
 
 void GraphicsTerminal::ClearScreen(TerminalColor color)
 {
+    uint32_t rgbColor = ToRGB(color);
     for (uint32_t y = 0; y < framebufferInfo.height; y++)
     {
         for (uint32_t x = 0; x < framebufferInfo.width; x++)
-        {
-            uint32_t* pixelOffset = (uint32_t*)(y * framebufferInfo.pitch + (x * (framebufferInfo.bpp / 8)) + framebufferInfo.framebufferBase);
-            *pixelOffset = 0x0000ff00;
-        }
+            PutPixel(rgbColor, x, y);
     }
 }
 void GraphicsTerminal::PutChar(char c)
@@ -133,8 +131,11 @@ void GraphicsTerminal::SetY(const uint32_t _y)
 void GraphicsTerminal::ScrollDown(uint8_t lines)
 {
     PSF2Font* font_ = (PSF2Font*)font;
-    size_t bytesToCopy = framebufferInfo.pitch * framebufferInfo.height - framebufferInfo.pitch - font_->height * lines;
-    memcpy((void*)framebufferInfo.framebufferBase, (void*)(framebufferInfo.framebufferBase + framebufferInfo.pitch * font_->height * lines), bytesToCopy);
+    size_t bytesToCopy = framebufferInfo.pitch * (framebufferInfo.height - lines * font_->height);
+    void* src = (void*)(framebufferInfo.framebufferBase + framebufferInfo.pitch * font_->height * lines);
+    memcpy((void*)framebufferInfo.framebufferBase, (void*)src, bytesToCopy);
+    if (y >= lines) y -= lines;
+    else y = 0;
 }
 
 GraphicsTerminal::GraphicsTerminal(FramebufferInfo& framebufferInfo, uint8_t* font)
@@ -193,6 +194,8 @@ TerminalColor GraphicsTerminal::ToTerminalColor(uint32_t color) const
 }
 void GraphicsTerminal::PutPixel(uint32_t pixel, uint32_t _x, uint32_t _y)
 {
+    //TODO: Don't assume pixel format
     uint32_t* pixelOffset = (uint32_t*)(_y * framebufferInfo.pitch + (_x * (framebufferInfo.bpp / 8)) + framebufferInfo.framebufferBase);
-    *pixelOffset = pixel;
+    // We shouldn't change unused bits
+    *pixelOffset = (*pixelOffset & 0xff000000) | pixel;
 }

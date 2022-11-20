@@ -10,9 +10,10 @@
 #include "Drivers/TextModeTerminal.hpp"
 #include "Drivers/Serial.hpp"
 
+#include "Utility/font.hpp"
 #include "Utility/libc.hpp"
 #include "Utility/Logger.hpp"
-#include "Utility/PhysicalMemoryManager.hpp"
+#include "Memory/PhysicalMemoryManager.hpp"
 
 extern symbol __bss_start;
 extern symbol __bss_end;
@@ -72,7 +73,6 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
     Volume::DetectVolumes();
-
     Volume* volume = &Volume::GetVolumes()[0];
 
     const char* kernelFileName = "PhoenixOS.elf";
@@ -82,46 +82,65 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     if (!kernelFile) panic("Failed to open kernel file!");
     else LOG_INFO("[OK]\n");
     
+    volume->CloseFile(kernelFile);
     void* kernel = PhysicalMemoryManager::Allocate(kernelFile->GetSize());
-    kernelFile->ReadAll(kernel);
-    
-    File* fontFile = volume->OpenFile("font.psf");
-    if (!fontFile) panic("Failed to open font.psf!\n");
-
-    uint8_t* font = (uint8_t*)PhysicalMemoryManager::Allocate(fontFile->GetSize());
-    fontFile->ReadAll(font);
+    delete kernel;
+    //kernelFile->ReadAll(kernel);
+    printf("SIZE: %d\n", kernelFile->GetSize());
     
     FramebufferInfo framebufferInfo;
     getFramebufferInfo(framebufferInfo);
-    GraphicsTerminal::Initialize(framebufferInfo, font);
-    Terminal::Get()->ClearScreen(TerminalColor::eCyan);
-    Terminal::Get()->PutChar(0x41);
-    Terminal::Get()->PrintString("Hello, World!\n\r");
-    Terminal::Get()->PrintString("Hello, World!\n\r");
-    LOG_INFO("Yo! Graphics Terminal is up and running! x: %d, y: %d", 17, 477);
 
-    halt();
-    Terminal::Get()->ClearScreen();
+    //TODO: Add support for psf1 fonts
+    GraphicsTerminal::Initialize(framebufferInfo, zap_light20_psf);
+    Terminal::Get()->ClearScreen(TerminalColor::eCyan);
+    LOG_INFO("Yo! Graphics Terminal is up and running! x: %d, y: %d\n", 17, 477);
+
+    LOG_INFO("BlockDevice: %d\n", bootDrive);
+    LOG_INFO("STAGE2_SIZE: %d\n", stage2Size);
+
+    LOG_INFO("TESTS:\n");
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
     int* ptr1 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
+    int* ptr17 = (int*)PhysicalMemoryManager::Allocate(4600);
+    PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
     int* ptr2 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
     int* ptr3 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
+    long* ptr4 = new long;
+    PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
     delete ptr2;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
     delete ptr1;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
     delete ptr3;
     PhysicalMemoryManager::PrintFreeSpace();
-    int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x500);
-    printf("ptr5: %x\n", (uint32_t)ptr5);
+    LOG_TRACE("Freeing bytes...\n");
+    delete ptr17;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
+    delete ptr4;
+    PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
+    int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x500);
+    PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
     delete ptr5;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Allocating bytes...\n");
     int* ptr6 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
+    LOG_TRACE("Freeing bytes...\n");
     delete ptr6;
     PhysicalMemoryManager::PrintFreeSpace();
 
