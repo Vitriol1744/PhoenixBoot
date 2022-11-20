@@ -1,4 +1,4 @@
-#include "Disk.hpp"
+#include "BlockDevice.hpp"
 
 //TODO: Temp
 #include "Arch/x86/x86.hpp"
@@ -8,7 +8,7 @@
 #include "Utility/libc.hpp"
 #include "Utility/PhysicalMemoryManager.hpp"
 
-bool Disk::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint64_t& lbaEnd)
+bool BlockDevice::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint64_t& lbaEnd)
 {
     MBR mbr;
     Read(&mbr, 0, 512);
@@ -32,7 +32,7 @@ bool Disk::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint64_t& l
     //TODO: Add Extended MBR partitions support
     //TODO: Add GPT Support
 }
-bool Disk::Read(void* buffer, uint64_t offset, uint64_t bytes)
+bool BlockDevice::Read(void* buffer, uint64_t offset, uint64_t bytes)
 {
     uint8_t* temp = reinterpret_cast<uint8_t*>(PhysicalMemoryManager::AllocateBelow1M(512));
     if (!temp) return false;

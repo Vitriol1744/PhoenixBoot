@@ -24,11 +24,11 @@ struct MBR
     MBR_Entry entries[4];
 };
 
-class Disk
+class BlockDevice
 {
     public:
-        inline Disk() = default;
-        inline Disk(uint8_t index, uint8_t type, uint16_t cylinders, uint16_t sectors, uint16_t heads)
+        inline BlockDevice() = default;
+        inline BlockDevice(uint8_t index, uint8_t type, uint16_t cylinders, uint16_t sectors, uint16_t heads)
             : index(index), type(type), cylinders(cylinders), sectors(sectors), heads(heads) { }
 
         inline void CHS(uint32_t lba, uint16_t& cylinder, uint16_t& sector, uint16_t& head)

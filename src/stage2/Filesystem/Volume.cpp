@@ -9,9 +9,9 @@
 Volume Volume::volumes[MAX_VOLUMES] = {};
 uint32_t Volume::volumeCount = 0;
 
-Volume::Volume(Disk& _disk, uint64_t _partitionIndex, uint64_t _lbaStart, uint64_t _lbaEnd)
+Volume::Volume(BlockDevice& blockDevice, uint64_t _partitionIndex, uint64_t _lbaStart, uint64_t _lbaEnd)
 {
-    this->disk = _disk;
+    this->blockDevice = blockDevice;
     this->partitionIndex = _partitionIndex;
     this->lbaStart = _lbaStart;
     this->lbaEnd = _lbaEnd;
@@ -36,14 +36,14 @@ void Volume::DetectVolumes()
         if (!get_drive_parameters(i, &driveType, &cylinders, &sectors, &heads)) continue;
         if (!reset_disk(i)) continue;
         if (!read_sectors(i, 0, 1, 0, temporaryBuffer, 1)) continue;
-        Disk disk(i, driveType, cylinders, sectors, heads);
+        BlockDevice blockDevice(i, driveType, cylinders, sectors, heads);
 
         for (uint32_t part = 0; part < 1; part++)
         {
             uint64_t lbaStart = 0, lbaEnd = 0;
-            if (disk.GetPartition(part, lbaStart, lbaEnd))
+            if (blockDevice.GetPartition(part, lbaStart, lbaEnd))
             {
-                volumes[volumeCount++] = Volume(disk, part, lbaStart, lbaEnd);
+                volumes[volumeCount++] = Volume(blockDevice, part, lbaStart, lbaEnd);
             }
             else goto loop_end;
         }

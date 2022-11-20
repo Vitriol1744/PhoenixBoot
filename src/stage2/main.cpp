@@ -5,7 +5,7 @@
 
 #include "Filesystem/Volume.hpp"
 
-#include "Drivers/Disk.hpp"
+#include "Drivers/BlockDevice.hpp"
 #include "Drivers/GraphicsTerminal.hpp"
 #include "Drivers/TextModeTerminal.hpp"
 #include "Drivers/Serial.hpp"
