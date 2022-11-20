@@ -3,27 +3,21 @@
 
 #include "common.hpp"
 
+#include "Filesystem/Volume.hpp"
+
 #include "Drivers/Disk.hpp"
+#include "Drivers/GraphicsTerminal.hpp"
 #include "Drivers/TextModeTerminal.hpp"
 #include "Drivers/Serial.hpp"
 
 #include "Utility/libc.hpp"
 #include "Utility/Logger.hpp"
-#include "Utility/Partition.hpp"
 #include "Utility/PhysicalMemoryManager.hpp"
 
 extern symbol __bss_start;
 extern symbol __bss_end;
 
 using ConstructorFunction = void(*)();
-
-struct A
-{
-    A() { *c = 0x41; }
-
-    char* c = (char*)0xb8000;
-};
-A a;
 
 extern ConstructorFunction __init_array_start[];
 extern ConstructorFunction __init_array_end[];
@@ -74,22 +68,34 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
 
     initializeInterrupts();
 
-    FramebufferInfo framebufferInfo;
-    getFramebufferInfo(framebufferInfo);
-
     *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
-    Disk::DetectAllDrives();
+    Volume::DetectVolumes();
 
-    Disk* drives = Disk::GetDrives();
-    Partition part = drives[0].GetPartition(0);
-    
+    Volume* volume = &Volume::GetVolumes()[0];
+
     const char* kernelFileName = "PhoenixOS.elf";
-    File* file = part.OpenFile(kernelFileName);
+    File* kernelFile = volume->OpenFile(kernelFileName);
     LOG_TRACE("Searching for %s file...\t", kernelFileName);
-    if (!file) panic("Failed to open kernel file!");
+    if (!kernelFile) panic("Failed to open kernel file!");
     else LOG_INFO("[OK]\n");
+    void* kernel = PhysicalMemoryManager::Allocate(kernelFile->GetSize());
+    kernelFile->ReadAll(kernel);
+    LOG_INFO("kernel addr: %x\n", (uint32_t)kernel);
+    __asm__ volatile("xchg bx, bx");
+    File* fontFile = volume->OpenFile("font.psf");
+    if (!fontFile) panic("Failed to open font.psf!\n");
+    
+    uint8_t* font = (uint8_t*)PhysicalMemoryManager::Allocate(fontFile->GetSize());
+    fontFile->ReadAll(font);
+    
+    FramebufferInfo framebufferInfo;
+    getFramebufferInfo(framebufferInfo);
+    GraphicsTerminal::Initialize(framebufferInfo, font);
+    Terminal::Get()->ClearScreen(TerminalColor::eCyan);
+    Terminal::Get()->PutChar(0x41);
+    printf("Yo! Graphics Terminal is up and running! x: %d, y: %d", 17, 477);
 
     halt();
     Terminal::Get()->ClearScreen();
