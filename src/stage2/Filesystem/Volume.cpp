@@ -38,16 +38,16 @@ void Volume::DetectVolumes()
         if (!read_sectors(i, 0, 1, 0, temporaryBuffer, 1)) continue;
         BlockDevice blockDevice(i, driveType, cylinders, sectors, heads);
 
-        for (uint32_t part = 0; part < 1; part++)
+        for (uint32_t part = 0; ; part++)
         {
             uint64_t lbaStart = 0, lbaEnd = 0;
             if (blockDevice.GetPartition(part, lbaStart, lbaEnd))
             {
                 volumes[volumeCount++] = Volume(blockDevice, part, lbaStart, lbaEnd);
             }
-            else goto loop_end;
+            else break;
         }
     }
-loop_end:
+    printf("Volumes: %d\n", volumeCount);
     PhysicalMemoryManager::FreeBelow1M(512);
 }

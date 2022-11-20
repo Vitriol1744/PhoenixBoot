@@ -13,6 +13,8 @@ bool BlockDevice::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint
     MBR mbr;
     Read(&mbr, 0, 512);
     MBR_Entry* entry = &mbr.entries[partitionIndex];
+    printf("PartitionIndex: %d, systemID: %d\n", partitionIndex, entry->systemID);
+    if (entry->systemID == 0) return false;
     
     uint16_t cylinder = entry->startCHS[1] & 0b11000000 << 2;
     cylinder |= entry->startCHS[2];
