@@ -83,7 +83,7 @@ bool EchFsFile::Read(void* buffer, uint64_t bytes)
 {
     if (bytes > size - filePtr) return false;
 
-    if (!part->Read(buffer, startLBA + filePtr, bytes)) return false;
+    if (!part->Read(buffer, startLBA * 512 + filePtr, bytes)) return false;
     filePtr += bytes;
 
     return true;
