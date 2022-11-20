@@ -152,9 +152,10 @@ void PhysicalMemoryManager::PrintFreeSpace()
     MemorySegment* currentSegment = firstSegment;
     while (currentSegment)
     {
+        LOG_INFO("Segment[%d]: ptr %x, size: %d, free %d\n", segmentCount, (uint32_t)(currentSegment + 1), currentSegment->length, currentSegment->free);
         segmentCount++;
         if (currentSegment->free) freeSpace += currentSegment->length;
         currentSegment = currentSegment->nextSegment;
     }
-    LOG_INFO("Free Space: %d, SegmentCount: %d\n", freeSpace, segmentCount);
+    //LOG_INFO("Free Space: %d, SegmentCount: %d\n", freeSpace, segmentCount);
 }

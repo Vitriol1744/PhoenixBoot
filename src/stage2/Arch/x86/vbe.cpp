@@ -1,8 +1,9 @@
 #include "vbe.hpp"
 
+#include "Memory/PhysicalMemoryManager.hpp"
+
 #include "Utility/libc.hpp"
 #include "Utility/Logger.hpp"
-#include "Utility/PhysicalMemoryManager.hpp"
 
 #define SegOff2Linear(seg, off) (seg << 4 + off)
 #define DIFF(a, b) (a - b > 0 ? a - b : b - a)
@@ -50,6 +51,7 @@ uint16_t findMode(uint32_t width, uint32_t height, uint32_t bpp)
 
 bool vbeInitializeGraphicsMode(VbeModeInfo& _modeInfo)
 {
+    //TODO: Use EDID to query screen resolution
     uint16_t bestMode = findMode(1024, 768, 32);
     VbeModeInfo modeInfo;
     vbe_get_mode_info(bestMode, &modeInfo);

@@ -4,7 +4,7 @@
 #include "Arch/io.hpp"
 
 #include "Utility/libc.hpp"
-#include "Utility/PhysicalMemoryManager.hpp"
+#include "Memory/PhysicalMemoryManager.hpp"
 
 #include <stdint.h>
 

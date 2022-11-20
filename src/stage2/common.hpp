@@ -16,6 +16,7 @@ inline void halt() { while (true) __asm__("hlt"); }
 #endif
 
 void* operator new  (size_t count, void* ptr);
+void* operator new  (size_t size);
 void* operator new[](size_t count, void* ptr);
 
 struct StackFrame

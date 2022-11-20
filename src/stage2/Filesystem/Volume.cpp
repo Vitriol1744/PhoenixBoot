@@ -4,7 +4,6 @@
 #include "Arch/x86/x86.hpp"
 
 #include "Utility/libc.hpp"
-#include "Utility/PhysicalMemoryManager.hpp"
 
 Volume Volume::volumes[MAX_VOLUMES] = {};
 uint32_t Volume::volumeCount = 0;

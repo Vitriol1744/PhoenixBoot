@@ -4,9 +4,9 @@
 #include "Arch/x86/x86.hpp"
 
 #include "Drivers/Terminal.hpp"
+#include "Memory/PhysicalMemoryManager.hpp"
 
 #include "Utility/libc.hpp"
-#include "Utility/PhysicalMemoryManager.hpp"
 
 bool BlockDevice::GetPartition(uint32_t partitionIndex, uint64_t& lbaStart, uint64_t& lbaEnd)
 {

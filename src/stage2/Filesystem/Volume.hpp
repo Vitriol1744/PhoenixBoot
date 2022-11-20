@@ -7,7 +7,7 @@
 #include "Filesystem/File.hpp"
 #include "Filesystem/EchFsFile.hpp"
 
-#include "Utility/PhysicalMemoryManager.hpp"
+#include "Memory/PhysicalMemoryManager.hpp"
 
 static constexpr const uint32_t MAX_VOLUMES = 256;
 
@@ -33,8 +33,7 @@ class Volume
             switch (filesystem)
             {
                 case Filesystem::EchFS:
-                    ret = reinterpret_cast<File*>(PhysicalMemoryManager::Allocate(sizeof(EchFsFile)));
-                    new(ret)EchFsFile(this);
+                    ret = new EchFsFile(this);
                     break;
 
                 default:
@@ -45,6 +44,7 @@ class Volume
             if (ret != nullptr && !ret->Open(filename)) ret = nullptr;
             return ret;
         }
+        inline void CloseFile(const File* file) { if (file) delete file; }
 
         inline bool Read(void* buffer, uint64_t offset, uint64_t bytes) { return blockDevice.Read(buffer, lbaStart * 512 + offset, bytes); }
 
