@@ -45,7 +45,12 @@ void getFramebufferInfo(FramebufferInfo& framebufferInfo)
     if (!vbe_get_controller_info(&controllerInfo)) LOG_ERROR("[FAILED]\n");
     LOG_INFO("[OK]\n");
 
-    vbeInitializeGraphicsMode();
-    halt();
+    VbeModeInfo modeInfo;
+    vbeInitializeGraphicsMode(modeInfo);
+    framebufferInfo.framebufferBase = modeInfo.framebufferBase;
+    framebufferInfo.width = modeInfo.width;
+    framebufferInfo.height = modeInfo.height;
+    framebufferInfo.bpp = modeInfo.bpp;
+    framebufferInfo.pitch = modeInfo.pitch;
 }
 #endif

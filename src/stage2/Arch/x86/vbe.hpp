@@ -70,4 +70,4 @@ extern "C"
     bool __attribute__((cdecl)) vbe_set_video_mode(uint16_t modeIndex);
 }
 
-bool vbeInitializeGraphicsMode();
+bool vbeInitializeGraphicsMode(VbeModeInfo& modeInfo);

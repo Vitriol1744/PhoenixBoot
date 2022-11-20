@@ -8,7 +8,6 @@ vbe_get_controller_info:
     GoRealMode
     mov ax, 0x4f00
     LinearToSegOffset [bp + 8], es, edi, di
-    xchg bx, bx
     int 0x10
 
     mov di, ax

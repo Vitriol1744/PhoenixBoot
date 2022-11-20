@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "Utility/Logger.hpp"
+
 enum class TerminalColor
 {
     eBlack              = 0,
@@ -26,6 +28,8 @@ enum class TerminalColor
 class Terminal
 {
     public:
+        virtual ~Terminal() = default;
+
         virtual void ClearScreen(TerminalColor color) = 0;
         virtual void PutChar(char c) = 0;
 
@@ -49,4 +53,5 @@ class Terminal
         Terminal() = default;
 
         static Terminal* terminal;
+        static bool flag;
 };

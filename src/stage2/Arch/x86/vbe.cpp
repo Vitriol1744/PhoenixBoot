@@ -48,7 +48,7 @@ uint16_t findMode(uint32_t width, uint32_t height, uint32_t bpp)
     return best;
 }
 
-bool vbeInitializeGraphicsMode()
+bool vbeInitializeGraphicsMode(VbeModeInfo& _modeInfo)
 {
     uint16_t bestMode = findMode(1024, 768, 32);
     VbeModeInfo modeInfo;
@@ -57,5 +57,6 @@ bool vbeInitializeGraphicsMode()
     LOG_INFO("Width: %d, Height: %d, BitsPerPixel: %d", modeInfo.width, modeInfo.height, modeInfo.bpp);
 
     vbe_set_video_mode(bestMode);
+    memcpy(&_modeInfo, &modeInfo, sizeof(VbeModeInfo));
     return true;
 }

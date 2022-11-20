@@ -1,5 +1,6 @@
 #include "Terminal.hpp"
 
+bool Terminal::flag = false;
 Terminal* Terminal::terminal = nullptr;
 
 void Terminal::PrintString(const char* string)
