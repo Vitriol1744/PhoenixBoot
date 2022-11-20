@@ -20,6 +20,7 @@ extern "C"
     int strncmp(const char* lhs, const char* rhs, size_t n);
     void* memset(void* dest, char c, size_t n);
     void* memcpy(void* dest, const void* src, size_t bytes);
+    void* memmove(void* dest, const void* src, size_t bytes);
     
     int atoi(const char* str);
     char* itoa(int32_t value, char* str, int base);

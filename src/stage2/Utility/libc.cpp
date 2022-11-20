@@ -80,6 +80,20 @@ CFUNC void* memcpy(void* dest, const void* src, size_t bytes)
 
     return dest;
 }
+CFUNC void* memmove(void* dest, const void* src, size_t bytes)
+{
+    char* s = (char*)src;
+    char* d = (char*)dest;
+ 
+    char* temp = new char[bytes];
+ 
+    for (uint32_t i = 0; i < bytes; i++) temp[i] = s[i];
+    for (uint32_t i = 0; i < bytes; i++) d[i] = temp[i];
+ 
+    delete[] temp;
+
+    return dest;
+}
 
 CFUNC int atoi(const char* str)
 {
