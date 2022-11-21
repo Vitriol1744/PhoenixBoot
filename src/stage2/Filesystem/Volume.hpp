@@ -44,7 +44,17 @@ class Volume
             if (ret != nullptr && !ret->Open(filename)) ret = nullptr;
             return ret;
         }
-        inline void CloseFile(const File* file) { if (file) delete file; }
+        inline static File* SearchForFile(const char* filename)
+        {
+            for (uint32_t vol = 0; vol < volumeCount; vol++)
+            {
+                Volume* volume = &volumes[vol];
+                File* ret = volume->OpenFile(filename);
+                if (ret) return ret;       
+            }
+            return nullptr;
+        }
+        inline static void CloseFile(const File* file) { if (file) delete file; }
 
         inline bool Read(void* buffer, uint64_t offset, uint64_t bytes) { return blockDevice.Read(buffer, lbaStart * 512 + offset, bytes); }
 
