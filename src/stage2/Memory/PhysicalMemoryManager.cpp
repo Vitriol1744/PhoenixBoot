@@ -70,10 +70,10 @@ void* PhysicalMemoryManager::AllocateAligned(size_t bytes, uintptr_t alignment)
     }
 
     // Calculate new segment size
-    uint32_t nextSegmentLength = currentSegment->length - bytes - sizeof(MemorySegment);
+    uint32_t nextSegmentLength = currentSegment->length - bytes - sizeof(MemorySegment) - toAlign;
     // Mark block as used
     currentSegment->free = false;
-    currentSegment->length = bytes;
+    currentSegment->length = bytes + toAlign;
     
     // Create new segment
     MemorySegment* nextSegment = (MemorySegment*)((uint8_t*)currentSegment + sizeof(MemorySegment) + currentSegment->length);
@@ -104,8 +104,24 @@ void* PhysicalMemoryManager::CallocateAligned(size_t bytes, uintptr_t alignment)
 }
 void  PhysicalMemoryManager::Free(void* memory)
 {
-    MemorySegment* currentSegment = (MemorySegment*)((uint8_t*)memory - sizeof(MemorySegment));
-    currentSegment->free = true;
+    #define InRange(val, start, end) (val >= start && val < end)
+    MemorySegment* currentSegment = firstSegment; //(MemorySegment*)((uint8_t*)memory - sizeof(MemorySegment));
+    while (currentSegment)
+    {
+        if (currentSegment->free == false)
+        {
+            uint8_t* segmentStart = (uint8_t*)(currentSegment + 1);
+            uint8_t* segmentEnd = segmentStart + currentSegment->length;
+            if (InRange(memory, segmentStart, segmentEnd))
+            {
+                currentSegment->free = true;
+                break;
+            }
+        }
+        currentSegment = currentSegment->nextSegment;
+    }
+
+    //FIXME: I just figured out that we can't free memory that we previously aligned, i need to fix that later somehow
 
     // Defragmentate
     while (currentSegment)
@@ -152,7 +168,7 @@ void PhysicalMemoryManager::PrintFreeSpace()
     MemorySegment* currentSegment = firstSegment;
     while (currentSegment)
     {
-        LOG_INFO("Segment[%d]: ptr %x, size: %d, free %d\n", segmentCount, (uint32_t)(currentSegment + 1), currentSegment->length, currentSegment->free);
+        printf("Segment[%d]: ptr %x, size: %d, free %d\n", segmentCount, (uint32_t)(currentSegment + 1), currentSegment->length, currentSegment->free);
         segmentCount++;
         if (currentSegment->free) freeSpace += currentSegment->length;
         currentSegment = currentSegment->nextSegment;
