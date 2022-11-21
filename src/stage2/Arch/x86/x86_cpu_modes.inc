@@ -1,4 +1,9 @@
+idt_pm:
+    dw 0
+    dd 0
 %macro GoRealMode 0
+    ; save protected mode idt
+    sidt [idt_pm]
     jmp word 0x18:.entry16
 
 use16
@@ -19,8 +24,9 @@ use16
     mov ds, ax
     mov ss, ax
 
+    ; load real mode idt
 	lidt [.idt_real]
-	sti			; Restore interrupts -- be careful, unhandled int's will kill it.
+	sti
 %endmacro
 
 
@@ -33,7 +39,6 @@ use16
 
     jmp dword 08h:.pmode
 
-
 .pmode:
     use32
     
@@ -41,7 +46,8 @@ use16
     mov ds, ax
     mov es, ax
     mov ss, ax
-
+    ; load protected mode idt
+    lidt [idt_pm]
 %endmacro
 
 %macro LinearToSegOffset 4
