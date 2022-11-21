@@ -68,24 +68,24 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     initializeConstructors();
 
     initializeInterrupts();
+    __asm__("sti;");
 
     *(long long*)0xb8f00 = 0x12591241124b124f;
     Terminal::Get()->SetColor(TerminalColor::eCyan, TerminalColor::eBlack);
 
     Volume::DetectVolumes();
-    Volume* volume = &Volume::GetVolumes()[0];
 
     const char* kernelFileName = "PhoenixOS.elf";
-    File* kernelFile = volume->OpenFile(kernelFileName);
+    File* kernelFile = Volume::SearchForFile(kernelFileName);
     
     LOG_TRACE("Searching for %s file...\t", kernelFileName);
     if (!kernelFile) panic("Failed to open kernel file!");
     else LOG_INFO("[OK]\n");
     
-    volume->CloseFile(kernelFile);
+    Volume::CloseFile(kernelFile);
     void* kernel = PhysicalMemoryManager::Allocate(kernelFile->GetSize());
+    kernelFile->ReadAll(kernel);
     delete kernel;
-    //kernelFile->ReadAll(kernel);
     printf("SIZE: %d\n", kernelFile->GetSize());
     
     FramebufferInfo framebufferInfo;
@@ -99,51 +99,51 @@ extern "C" __attribute__((section(".entry"))) __attribute__((cdecl)) void Stage2
     LOG_INFO("BlockDevice: %d\n", bootDrive);
     LOG_INFO("STAGE2_SIZE: %d\n", stage2Size);
 
-    LOG_INFO("TESTS:\n");
+    printf("TESTS:\n");
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr1 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr17 = (int*)PhysicalMemoryManager::Allocate(4600);
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr2 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr3 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     long* ptr4 = new long;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr2;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr1;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr3;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr17;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr4;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr5 = (int*)PhysicalMemoryManager::AllocateAligned(sizeof(int), 0x500);
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr5;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Allocating bytes...\n");
+    printf("Allocating bytes...\n");
     int* ptr6 = new int;
     PhysicalMemoryManager::PrintFreeSpace();
-    LOG_TRACE("Freeing bytes...\n");
+    printf("Freeing bytes...\n");
     delete ptr6;
     PhysicalMemoryManager::PrintFreeSpace();
-
+    //__asm__("int 0x10");
     LOG_INFO(" ____  _                      _       ___  ____  \n");
     LOG_INFO("|  _ \\| |__   ___   ___ _ __ (_)_  __/ _ \\/ ___| \n");
     LOG_INFO("| |_) | '_ \\ / _ \\ / _ \\ '_ \\| \\ \\/ / | | \\___ \\ \n");
