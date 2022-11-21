@@ -121,8 +121,6 @@ void  PhysicalMemoryManager::Free(void* memory)
         currentSegment = currentSegment->nextSegment;
     }
 
-    //FIXME: I just figured out that we can't free memory that we previously aligned, i need to fix that later somehow
-
     // Defragmentate
     while (currentSegment)
     {
